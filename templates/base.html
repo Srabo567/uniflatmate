@@ -1,0 +1,42 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}UniFlatMate{% endblock %}</title>
+  <link href="{% static 'css/uniflatmate.css' %}" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a href="/"><b>UniFlatMate</b></a>
+  {% if user.is_authenticated %}
+    {% if not is_owner %}
+      <a href="{% url 'matching:match_list' %}">Matches</a>
+      {% if listings_enabled %}<a href="{% url 'listings:search' %}">Rooms</a>{% endif %}
+      {% if mess_enabled %}<a href="{% url 'mess:my_mess' %}">Meals</a>{% endif %}
+      <a href="{% url 'accounts:requests_inbox' %}">Requests</a>
+      <a href="{% url 'accounts:connections' %}">Connections</a>
+    {% else %}
+      {% if listings_enabled %}<a href="{% url 'listings:dashboard' %}">My listings</a>{% endif %}
+    {% endif %}
+    <a href="{% url 'accounts:profile' %}">{{ user.username }}</a>
+    <form method="post" action="{% url 'logout' %}" style="display:inline">
+      {% csrf_token %}<button>Log out</button>
+    </form>
+  {% else %}
+    <a href="{% url 'accounts:signup' %}">Sign up</a>
+    <a href="{% url 'login' %}">Log in</a>
+  {% endif %}
+</nav>
+
+<main>
+  {% if messages %}{% for m in messages %}<p class="msg">{{ m }}</p>{% endfor %}{% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

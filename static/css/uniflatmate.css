@@ -1,0 +1,47 @@
+/* ==========================================================================
+   uniflatmate.css
+
+   PLACEHOLDER — শুভ্রর ভাগ।
+
+   এখানে শুধু এটুকু আছে যাতে page গুলো পড়া যায়। আসল design layer
+   (brand colour, card, score ring, responsive navbar) শুভ্র লিখবে।
+   ========================================================================== */
+
+body {
+  font-family: system-ui, "Segoe UI", sans-serif;
+  margin: 0;
+  color: #0b2b33;
+  background: #f5f9fa;
+  line-height: 1.6;
+}
+
+nav {
+  background: #063c4a;
+  padding: 12px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+nav a { color: #fff; text-decoration: none; font-size: .95rem; }
+nav a:hover { text-decoration: underline; }
+
+main { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+h1 { font-size: 1.6rem; margin: 0 0 .4rem; }
+h2 { font-size: 1.1rem; margin: 1.4rem 0 .4rem; }
+
+.row {
+  background: #fff;
+  border: 1px solid #dde9ed;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.msg   { background: #e8f6f3; border: 1px solid #bfe5dc; padding: 8px 12px; border-radius: 6px; }
+.error { color: #9c2a23; }
+
+label { display: block; margin-top: 8px; font-size: .9rem; font-weight: 600; }
+input, select, textarea { padding: 6px 8px; font-size: .95rem; }
+button { padding: 6px 14px; font-size: .95rem; cursor: pointer; }

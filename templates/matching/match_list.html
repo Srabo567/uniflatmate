@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Your matches · UniFlatMate{% endblock %}
+
+{% block content %}
+
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-1">
+    <div>
+      <span class="uf-label">Compatibility</span>
+      <h1 class="h3 mt-1 mb-1">Roommate matches</h1>
+      <p class="uf-muted mb-0 small">
+        Students at <strong>{{ student.university }}</strong>, scored on
+        smoking, sleep schedule, study environment and budget.
+      </p>
+    </div>
+    <div class="d-flex align-items-end gap-2">
+      <form method="get" class="d-flex align-items-end gap-2">
+        <div>
+          <label class="form-label small fw-semibold mb-1" for="dept">Department</label>
+          <select class="form-select form-select-sm" name="dept" id="dept"
+                  onchange="this.form.submit()">
+            <option value="">All departments</option>
+            {% for value, label in departments %}
+              <option value="{{ value }}"
+                {% if value == selected_department %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <noscript><button class="btn btn-sm btn-uf-ghost">Filter</button></noscript>
+      </form>
+      <a class="btn btn-sm btn-uf-ghost" href="{% url 'accounts:profile_edit' %}">
+        Change my answers
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-3">
+    {% for r in results %}
+      <div class="col-md-6 col-xl-4">
+        <div class="uf-card h-100 d-flex flex-column overflow-hidden">
+
+          <div class="p-3">
+            <div class="uf-match-head">
+              <div class="uf-ring {% if not r.recommended %}uf-ring--low{% endif %}"
+                   style="--p:{{ r.score }}">
+                <span>{{ r.score }}<i>%</i></span>
+              </div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="uf-avatar">{{ r.student.username|first|upper }}</span>
+                  <h2 class="h6 mb-0 text-truncate">{{ r.student.username }}</h2>
+                </div>
+                <small class="uf-muted d-block mt-1">{{ r.student.public_label }}</small>
+              </div>
+            </div>
+          </div>
+
+          {% if not r.recommended %}
+            <div class="uf-warn-strip">Not recommended — too many mismatches</div>
+          {% endif %}
+
+          <div class="p-3 pt-3 flex-grow-1">
+            <div class="d-flex flex-wrap gap-1">
+              {% for label, matched in r.breakdown %}
+                <span class="uf-chip {% if matched %}uf-chip--yes{% else %}uf-chip--no{% endif %}">
+                  {% if matched %}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m5 13 4.5 4.5L19 7"></path>
+                    </svg>
+                  {% else %}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="3.4" stroke-linecap="round">
+                      <path d="M6 6l12 12M18 6 6 18"></path>
+                    </svg>
+                  {% endif %}
+                  {{ label }}
+                </span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="p-3 pt-0">
+            {% if r.student.pk in already_requested %}
+              <button class="btn btn-sm btn-uf-ghost w-100" disabled>Request already sent</button>
+            {% else %}
+              <form method="post" action="{% url 'accounts:send_request' r.student.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-uf w-100">Send roommate request</button>
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+               class="mb-2 opacity-50">
+            <circle cx="9" cy="8" r="3.4"></circle>
+            <path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path>
+            <path d="M18 9v6M15 12h6"></path>
+          </svg>
+          {% if selected_department %}
+            <p class="mb-0 small">
+              Nobody from that department at {{ student.university }} yet.<br>
+              <a href="{% url 'matching:match_list' %}">Show all departments</a>
+            </p>
+          {% else %}
+            <p class="mb-0 small">
+              No other students from {{ student.university }} have signed up yet.<br>
+              Add a few accounts and they will be scored here automatically.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% include "_pagination.html" %}
+
+  <p class="small uf-muted mt-4 mb-0">
+    {{ total }} student{{ total|pluralize }} scored. Weights: smoking 30 ·
+    sleep 25 · budget 25 · study 20. Anything under 50 is shown as a warning
+    rather than a match.
+  </p>
+
+{% endblock %}

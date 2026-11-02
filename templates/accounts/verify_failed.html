@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>That link didn't work</h1>
+  <p>Each link works once. It may already have been used, or the account is active already.</p>
+  <a href="{% url 'login' %}">Try logging in</a>
+  <a href="{% url 'accounts:signup' %}">Back to sign up</a>
+{% endblock %}

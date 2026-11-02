@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Roommate requests · UniFlatMate{% endblock %}
+{% block content %}
+  <h1>Roommate requests</h1>
+  <p>A roommate request goes to the other student, and only that student can answer it.</p>
+
+  <h2>Received ({{ received|length }})</h2>
+  {% for r in received %}
+    <div class="row">
+      <b>{{ r.sender.username }}</b> — {{ r.sender.public_label }}
+      [{{ r.get_status_display }}]
+      {% if r.message %}<p>&ldquo;{{ r.message }}&rdquo;</p>{% endif %}
+      {% if r.status == "P" %}
+        <form method="post" action="{% url 'accounts:respond_request' r.pk %}">
+          {% csrf_token %}
+          <button name="action" value="accept">Accept</button>
+          <button name="action" value="decline">Decline</button>
+        </form>
+        <p>Accepting reveals your email and phone to them, and theirs to you.</p>
+      {% elif r.status == "A" %}
+        <a href="{% url 'accounts:connections' %}">See contact details</a>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>Nobody has sent you a request yet.</p>
+  {% endfor %}
+
+  <h2>Sent ({{ sent|length }})</h2>
+  {% for r in sent %}
+    <div class="row">
+      <b>{{ r.receiver.username }}</b> — {{ r.receiver.public_label }}
+      [{{ r.get_status_display }}]
+    </div>
+  {% empty %}
+    <p>You have not sent any yet — <a href="{% url 'matching:match_list' %}">see your matches</a>.</p>
+  {% endfor %}
+{% endblock %}

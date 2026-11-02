@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Student sign up · UniFlatMate{% endblock %}
+{% block content %}
+  <h1>Create your student account</h1>
+  <p>Sign up with your university email. A confirmation link is sent there.</p>
+
+  {% if form.non_field_errors %}<p class="error">{{ form.non_field_errors }}</p>{% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button>Create account</button>
+  </form>
+
+  <p><a href="{% url 'login' %}">I already have an account</a></p>
+{% endblock %}

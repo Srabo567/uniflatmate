@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Sign up · UniFlatMate{% endblock %}
+{% block content %}
+  <h1>Create an account</h1>
+  <p>Two kinds of account, two different jobs.</p>
+
+  <h2>I'm a student</h2>
+  <p>Find a compatible roommate and a seat near your campus. Needs a university email.</p>
+  <a href="{% url 'accounts:signup_student' %}">Student sign up</a>
+
+  <h2>I'm an owner</h2>
+  <p>Post a room and respond to seat requests. No payments pass through this site.</p>
+  <a href="{% url 'accounts:signup_owner' %}">Owner sign up</a>
+
+  <p>Already have an account? <a href="{% url 'login' %}">Log in</a>.</p>
+{% endblock %}

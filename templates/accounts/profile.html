@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}My profile · UniFlatMate{% endblock %}
+{% block content %}
+  {% if student %}
+    <h1>{{ student.username }}</h1>
+    <p>{{ student.public_label }}</p>
+    <p>{% if student.is_verified %}Verified student{% else %}Not verified yet{% endif %}</p>
+
+    <h2>Account</h2>
+    <ul>
+      <li>Email: {{ student.email }}</li>
+      <li>University: {{ student.university.name }}</li>
+      <li>Department: {{ student.get_department_display }}</li>
+      <li>Batch: {{ student.batch }}</li>
+      <li>Phone: {{ student.contact_number|default:"Not shared" }}</li>
+    </ul>
+    <p>Your roll number is stored but never shown to other students, and your phone
+    number is visible only to someone whose roommate request you accepted.</p>
+
+    <h2>What the compatibility score uses</h2>
+    <ul>
+      <li>Monthly budget: {{ student.budget|floatformat:0 }}</li>
+      <li>Smokes: {{ student.smokes|yesno:"Yes,No" }}</li>
+      <li>Sleeps early: {{ student.sleeps_early|yesno:"Yes,No" }}</li>
+      <li>Studies in the room: {{ student.study_at_home|yesno:"Yes,No" }}</li>
+    </ul>
+    <a href="{% url 'accounts:profile_edit' %}">Edit preferences</a>
+    <a href="{% url 'matching:match_list' %}">See my matches</a>
+
+  {% elif owner %}
+    <h1>{{ owner.username }}</h1>
+    <p>Owner account —
+      {% if owner.is_verified %}verified{% else %}awaiting admin verification{% endif %}</p>
+    <ul>
+      <li>Email: {{ owner.email }}</li>
+      <li>Phone: {{ owner.contact_number|default:"—" }}</li>
+      <li>Rating: {{ owner.owner_rating }} / 5</li>
+    </ul>
+    {% if listings_enabled %}
+      <a href="{% url 'listings:dashboard' %}">My listings</a>
+      <a href="{% url 'listings:create' %}">Post a room</a>
+    {% else %}
+      <p>Posting listings switches on once the listings app is built.</p>
+    {% endif %}
+
+  {% else %}
+    <h1>Admin account</h1>
+    <p>You are signed in as staff. Use the <a href="/admin/">admin panel</a>.</p>
+  {% endif %}
+{% endblock %}

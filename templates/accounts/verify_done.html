@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Email verified</h1>
+  <p>Welcome, {{ username }}. Your account is active.</p>
+  <a href="{% url 'login' %}">Log in</a>
+{% endblock %}

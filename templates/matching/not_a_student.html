@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Student profile needed · UniFlatMate{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-6 py-4">
+      <div class="uf-card uf-card--flat p-4 text-center">
+        <div class="uf-icon uf-icon--warm mx-auto mb-3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="3.6"></circle>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+        </div>
+        <h1 class="h4 mb-2">Student profile needed</h1>
+        <p class="uf-muted mb-3">
+          Roommate matching is for student accounts — it scores lifestyle
+          answers only students fill in. Owner accounts manage listings and
+          seat requests instead.
+        </p>
+        <a class="btn btn-uf-ghost" href="{% url 'accounts:profile' %}">Back to my profile</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

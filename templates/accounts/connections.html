@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}My connections · UniFlatMate{% endblock %}
+{% block content %}
+  <h1>My roommate connections</h1>
+  <p>Both of you agreed, so you can now see each other's contact details.
+  UniFlatMate handles no money.</p>
+
+  {% for c in connections %}
+    <div class="row">
+      <b>{{ c.other.username }}</b> — {{ c.other.public_label }} — {{ c.score }}%
+      <ul>
+        <li>Email: <a href="mailto:{{ c.other.email }}">{{ c.other.email }}</a></li>
+        <li>Phone:
+          {% if c.other.contact_number %}{{ c.other.contact_number }}
+          {% else %}Not shared — use email{% endif %}</li>
+      </ul>
+      <form method="post" action="{% url 'accounts:remove_connection' c.request.pk %}">
+        {% csrf_token %}
+        <button>Remove connection</button>
+      </form>
+      <p>Removing hides your details from them and theirs from you, straight away.</p>
+    </div>
+  {% empty %}
+    <p>No connections yet. Contact details appear here once a roommate request is accepted.
+    <a href="{% url 'matching:match_list' %}">See your matches</a>.</p>
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Edit preferences</h1>
+  <p>Changing these changes who you match with. Username, email, university and roll
+  number cannot be edited — your account was verified against them.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button>Save changes</button>
+  </form>
+  <a href="{% url 'accounts:profile' %}">Cancel</a>
+{% endblock %}
