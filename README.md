@@ -32,6 +32,8 @@ python manage.py migrate
 python manage.py createsuperuser
 
 python manage.py seed_universities    # 22 Dhaka campuses
+python manage.py seed_areas           # 46 Dhaka areas
+python manage.py seed_demo_mess       # a demo mess with meal records
 python manage.py seed_demo            # 14 demo students, 2 owners
 
 python manage.py test
@@ -67,9 +69,9 @@ Open http://127.0.0.1:8000/ — log in as `demo_nusrat`, password `demo12345`.
 |---|---|---|
 | `accounts` | done | University, UniversityEmailDomain, User, Student, Owner, RoommateRequest |
 | `matching` | done | none — the compatibility score needs no table |
-| `locations` | empty, waiting | Area |
+| `locations` | done | Area |
 | `listings` | empty, waiting | Amenity, Listing, ListingPhoto, SeatRequest |
-| `mess` | empty, waiting | Mess, DailyMeal, MessExpense |
+| `mess` | done | Mess, DailyMeal, MessExpense |
 | `reviews` | empty, waiting | Review |
 
 The four empty apps are already in `INSTALLED_APPS`, so each person only has to
