@@ -13,7 +13,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Security -------------------------------------------------------------
 SECRET_KEY = config("SECRET_KEY", default="dev-only-key-change-me")
 DEBUG = config("DEBUG", default=True, cast=bool)
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# Hosts this site is allowed to answer for. Local development needs
+# nothing; a deployed copy sets ALLOWED_HOSTS in its own .env file.
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in config("ALLOWED_HOSTS", default="127.0.0.1,localhost").split(",")
+    if host.strip()
+]
+
+# Django needs this for POST forms once the site is served over https.
+CSRF_TRUSTED_ORIGINS = [
+    "https://" + host
+    for host in ALLOWED_HOSTS
+    if host != "localhost" and not host.replace(".", "").isdigit()
+]
 
 # --- Applications ---------------------------------------------------------
 INSTALLED_APPS = [
@@ -96,6 +109,11 @@ USE_TZ = True
 # --- Static & media -------------------------------------------------------
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Where `collectstatic` gathers everything for a real web server to serve.
+# Deliberately NOT the same folder as STATICFILES_DIRS above, or Django
+# refuses to start.
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
