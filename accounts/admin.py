@@ -50,7 +50,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     list_display = ("username", "university", "department", "batch",
-                    "budget", "smokes", "sleeps_early")   # mess যোগ হলে এখানে ফেরাবে
+                    "budget", "smokes", "sleeps_early", "mess")
     # batch is a property, so filter on the real columns behind it
     list_filter = ("university", "department", "batch_year", "batch_season",
                    "smokes", "sleeps_early")
