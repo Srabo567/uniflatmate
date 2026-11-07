@@ -1,13 +1,4 @@
-"""
-accounts/models.py  —  WORKED EXAMPLE
-
-Read this file first. Every other models.py in the project is this same
-pattern with different fields, so once you understand this one the rest is
-mechanical.
-
-Covers the class diagram's University, User, Student, Owner and
-RoommateRequest.
-"""
+"""Universities, users, students, owners, and roommate requests."""
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -16,16 +7,7 @@ from django.db.models import Q
 
 
 class University(models.Model):
-    """
-    One row per campus.
-
-    UniFlatMate is open to students of any university, so this is a real
-    table rather than a text field on Student. The coordinates are what make
-    "seats within 3 km of my campus" possible — see listings/services.py.
-
-    Rows are loaded by `python manage.py seed_universities`, not typed into
-    the admin by hand — see accounts/management/commands/.
-    """
+    """One campus. Coordinates make "within 3 km of my campus" possible."""
 
     name = models.CharField(max_length=150, unique=True)
     short_code = models.CharField(max_length=15, unique=True)       # "UAP"
@@ -37,25 +19,23 @@ class University(models.Model):
         ordering = ["short_code"]
 
     def allows_email(self, email):
-        """
-        True if this address is on one of the university's own domains.
-
-        THE VERIFICATION RULE lives here, on the model, so that forms, the
-        admin and any future API all apply the same test. A form should ask
-        the model a question, not re-implement the answer.
-        """
+        """True if this address ends with one of the university's domains."""
         email = (email or "").lower().strip()
-        return any(
-            email.endswith("@" + d.domain)
-            for d in self.email_domains.all()
-        )
+
+        for entry in self.email_domains.all():
+            if email.endswith("@" + entry.domain):
+                return True
+        return False
 
     @property
     def domain_list(self):
-        """'uap-bd.edu or students.uap-bd.edu' — for error messages."""
-        domains = [d.domain for d in self.email_domains.all()]
-        if len(domains) <= 1:
-            return domains[0] if domains else ""
+        """'uap-bd.edu or students.uap-bd.edu' — used in error messages."""
+        domains = [entry.domain for entry in self.email_domains.all()]
+
+        if not domains:
+            return ""
+        if len(domains) == 1:
+            return domains[0]
         return ", ".join(domains[:-1]) + " or " + domains[-1]
 
     def __str__(self):
@@ -63,17 +43,11 @@ class University(models.Model):
 
 
 class UniversityEmailDomain(models.Model):
-    """
-    One allowed email domain. A university may have several.
+    """One allowed email domain. A university can have several.
 
-    WHY THIS IS ITS OWN TABLE: the first design put a single email_domain
-    field on University. That breaks on real data — North South publishes
-    both northsouth.edu and northsouth.ac.bd, and several universities give
-    students a different domain from staff (students.x.edu.bd vs x.edu.bd).
-    With one field, half of a university's students get rejected at sign-up.
-
-    This is a plain one-to-many: one University, many domains. It is the
-    same shape as University -> Student, so nothing new to learn.
+    North South uses both northsouth.edu and northsouth.ac.bd, and many
+    universities give students a different domain from staff. A single
+    field on University would reject half of them.
     """
 
     university = models.ForeignKey(
@@ -81,20 +55,16 @@ class UniversityEmailDomain(models.Model):
     )
     domain = models.CharField(
         max_length=100,
-        unique=True,                 # no two universities may claim one domain
+        unique=True,
         help_text="No @ and no spaces — e.g. uap-bd.edu",
     )
-    note = models.CharField(
-        max_length=60, blank=True,
-        help_text="Optional, e.g. 'student accounts' or 'old domain'.",
-    )
+    note = models.CharField(max_length=60, blank=True)
 
     class Meta:
         ordering = ["university__short_code", "domain"]
 
     def save(self, *args, **kwargs):
-        # Normalise on the way in, so a stray "@UAP-BD.EDU " can never
-        # silently fail to match a lowercase address later.
+        # Tidy it on the way in, so "@UAP-BD.EDU " still matches later.
         self.domain = self.domain.strip().lstrip("@").lower()
         super().save(*args, **kwargs)
 
@@ -103,62 +73,35 @@ class UniversityEmailDomain(models.Model):
 
 
 class User(AbstractUser):
-    """
-    Our custom user, replacing Django's default.
+    """Our user, replacing Django's default.
 
-    AbstractUser already gives us, free:
-        username (unique — the [UNIQUE] on the class diagram),
-        email, first_name, last_name,
-        password (hashed automatically — never store a raw password),
-        is_active, is_staff, date_joined.
-
-    So we only add what UniFlatMate needs on top.
+    AbstractUser already gives username, email, password, is_active and
+    is_staff. We only add what UniFlatMate needs.
     """
 
     class Gender(models.TextChoices):
-        # TextChoices gives a dropdown in forms and the admin, and stops
-        # 'male', 'MALE', 'M ' and 'm' all landing in the same column.
         MALE = "M", "Male"
         FEMALE = "F", "Female"
 
     gender = models.CharField(max_length=1, choices=Gender.choices)
     is_verified = models.BooleanField(
         default=False,
-        help_text="True once the student clicked the link sent to their "
-                  "university email. THIS is what verification means — a "
-                  "roll number proves nothing, anyone can type one.",
+        help_text="True once the link sent to the university email is clicked.",
     )
 
     def __str__(self):
-        # Whatever this returns is what shows in the admin and in dropdowns.
-        # Always define it; the default is useless.
         return self.username
 
 
 class Student(User):
-    """
-    A student profile.
+    """A student profile.
 
-    NOTE ON THE DIAGRAM: the class diagram shows Student inheriting from
-    User, with its own student_id [PK] and a user_id [FK to User]. That is
-    exactly what Django does here — it is called multi-table inheritance.
-    Django creates an accounts_student table whose primary key is also a
-    foreign key to accounts_user. Diagram and code agree.
-
-    If Sir asks: "Student inherits from User; in the database Django stores
-    it as a separate table linked one-to-one by the primary key."
+    Student inherits from User. Django stores that as a separate table
+    whose primary key is also a foreign key to the user table — this is
+    called multi-table inheritance.
     """
 
     class Department(models.TextChoices):
-        """
-        A fixed list, not free text.
-
-        WHY: as a CharField, four students typing "CSE", "cse", "Cse" and
-        "Computer Science" produce four different departments. The ?dept=
-        filter on the match page then silently misses people, and profiles
-        look inconsistent. The stored value is the short code, so the filter
-        keeps working; the long name is only what the dropdown shows.
-        """
         CSE = "CSE", "Computer Science & Engineering"
         SWE = "SWE", "Software Engineering"
         EEE = "EEE", "Electrical & Electronic Engineering"
@@ -189,15 +132,10 @@ class Student(User):
         University, on_delete=models.PROTECT, related_name="students",
     )
 
-    # --- academic identity ---
-    # department and batch are safe to show publicly; roll_number is NOT.
-    # Name + department + roll makes a student findable in the real world,
-    # which is the exact risk the female-safety objective exists to prevent.
+    # Department and batch are safe to show publicly. roll_number is not.
     department = models.CharField(max_length=10, choices=Department.choices)
 
-    # Batch is stored as two columns, not the string "Spring 2024". Storing
-    # the year as a number means you can sort and filter by it ("everyone
-    # from 2024 or later"), which you cannot do with text.
+    # Two columns, not the text "Spring 2024", so the year can be sorted.
     batch_season = models.CharField(max_length=2, choices=Season.choices)
     batch_year = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(2000), MaxValueValidator(2100)],
@@ -206,66 +144,52 @@ class Student(User):
 
     roll_number = models.CharField(
         max_length=30,
-        help_text="PRIVATE. Never render this on a public profile — show "
-                  "department and batch instead. Use .public_label.",
+        help_text="PRIVATE. Never show on a public profile — use .public_label.",
     )
-
     budget = models.DecimalField(
         max_digits=10, decimal_places=2,
         help_text="Monthly budget in BDT. Used by the compatibility score.",
     )
-
     contact_number = models.CharField(
         max_length=15, blank=True,
-        help_text="PRIVATE. Shown only to students whose roommate request "
-                  "you have accepted — never on a profile or a match card. "
-                  "Optional: email alone is enough to connect.",
+        help_text="PRIVATE. Shown only after a roommate request is accepted.",
     )
 
-    # --- lifestyle attributes: the inputs to the compatibility score ---
+    # the inputs to the compatibility score
     smokes = models.BooleanField(default=False)
     sleeps_early = models.BooleanField(default=True)
-    study_at_home = models.BooleanField(
-        default=True, help_text="True if they mainly study in the room.",
-    )
+    study_at_home = models.BooleanField(default=True)
 
-    # The mess this student currently eats with, if any.
-    #
-    # The string "mess.Mess" rather than importing the class is what avoids
-    # a circular import: accounts does not import mess, and mess does not
-    # import accounts. Django resolves the string at startup.
-    # mess app এখনো লেখা হয়নি, তাই এই field টা আপাতত বন্ধ।
-    # তাজকিয়ার mess merge হওয়ার পর এই চার লাইন খুলে দিয়ে
-    # makemigrations + migrate চালালেই হবে — আলাদা একটা commit।
-    # mess = models.ForeignKey(
-    #     "mess.Mess", on_delete=models.SET_NULL,
-    #     null=True, blank=True, related_name="members",
-    # )
+    # "mess.Mess" as a string, not an import, so accounts and mess do not
+    # import each other.
+    mess = models.ForeignKey(
+        "mess.Mess",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="members",
+    )
 
     @property
     def batch(self):
-        """'Spring 2024' — rebuilt for display from the two stored columns."""
+        """'Spring 2024', rebuilt from the two stored columns."""
         return f"{self.get_batch_season_display()} {self.batch_year}"
 
     @property
     def public_label(self):
-        """Safe to show other students: identity without traceability."""
+        """Safe to show others: identity without traceability."""
         return f"{self.department}, {self.university.short_code} — {self.batch}"
 
     def connections(self):
-        """
-        Accepted roommate connections, in BOTH directions.
+        """Accepted roommate requests, whether I sent or received them.
 
-        A connection is not a separate table — it is simply a
-        RoommateRequest that reached ACCEPTED. The person may have been the
-        sender or the receiver, so the query has to look at both columns;
-        that is what the Q objects are for. Q(...) | Q(...) is Django's way
-        of writing SQL's OR, and the keyword argument after it is ANDed on.
-
-        So this reads: (I sent it OR I received it) AND it was accepted.
+        Q(...) | Q(...) is Django's way of writing OR, and the keyword
+        argument after it is ANDed on. So: (I sent OR I received) AND
+        accepted.
         """
+        sent_or_received = Q(sender=self) | Q(receiver=self)
+
         return (RoommateRequest.objects
-                .filter(Q(sender=self) | Q(receiver=self),
+                .filter(sent_or_received,
                         status=RoommateRequest.Status.ACCEPTED)
                 .select_related("sender__university", "receiver__university"))
 
@@ -278,30 +202,27 @@ class Owner(User):
 
     owner_rating = models.DecimalField(
         max_digits=3, decimal_places=2, default=0.00,
-        help_text="Average of all reviews; recalculated when one is added.",
     )
     contact_number = models.CharField(
         max_length=15, blank=True,
-        help_text="Revealed to a student only after a SeatRequest is "
-                  "accepted — never shown on a public listing.",
+        help_text="Shown to a student only after a seat request is accepted.",
     )
 
     def refresh_rating(self):
-        """
-        Recalculate owner_rating from the reviews, and save it.
+        """Work out the average rating again and save it.
 
-        WHY STORE IT AT ALL, instead of averaging on every page view?
-        Because the search page shows a rating per listing. Averaging live
-        would be one extra query per row — the N+1 problem again. So the
-        average is computed once, when a review changes, and read for free
-        afterwards. The cost is that this method must be called whenever a
-        review is added, edited or deleted; Review.save() and
-        Review.delete() do exactly that.
+        Storing the average means the search page can show it without an
+        extra query per row. Review.save() and Review.delete() call this.
         """
         from django.db.models import Avg
 
         average = self.received_reviews.aggregate(a=Avg("rating"))["a"]
-        self.owner_rating = round(average, 2) if average is not None else 0
+
+        if average is None:
+            self.owner_rating = 0
+        else:
+            self.owner_rating = round(average, 2)
+
         self.save(update_fields=["owner_rating"])
 
     @property
@@ -313,12 +234,9 @@ class Owner(User):
 
 
 class RoommateRequest(models.Model):
-    """
-    Student -> Student.  THE OTHER STUDENT DECIDES.
+    """One student asks another to be roommates. The other one decides.
 
-    Do not confuse this with listings.SeatRequest, which is Student ->
-    Listing and is decided by the OWNER. Two different requests, two
-    different deciders — that is why they are two tables, not one.
+    Not the same as listings.SeatRequest, which an owner decides.
     """
 
     class Status(models.TextChoices):
@@ -339,36 +257,22 @@ class RoommateRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # One student cannot spam another with twenty requests. This is a
-        # real database constraint, not a check in Python — worth saying in
-        # the viva.
         constraints = [
+            # One request per pair, enforced by the database.
             models.UniqueConstraint(
                 fields=["sender", "receiver"], name="one_request_per_pair",
             ),
         ]
         ordering = ["-created_at"]
 
-    # -----------------------------------------------------------------
-    #  WHAT ACCEPTING ACTUALLY DOES
-    #
-    #  Before this, accepting a request changed a letter in a column and
-    #  nothing else — two students were "matched" with no way to reach
-    #  each other. Accepting now unlocks contact details.
-    #
-    #  The rule is written here, on the model, NOT in a template. A
-    #  template that decides who sees a phone number is a privacy bug
-    #  waiting to happen: the next person to add a page forgets the check
-    #  and the number leaks. One method, used everywhere.
-    # -----------------------------------------------------------------
-
     def involves(self, student):
-        """True if this student is one of the two parties."""
-        return student is not None and student.pk in (self.sender_id,
-                                                      self.receiver_id)
+        """True if this student is one of the two people."""
+        if student is None:
+            return False
+        return student.pk in (self.sender_id, self.receiver_id)
 
     def other_party(self, student):
-        """The person on the other end, or None if they are not involved."""
+        """The person on the other end, or None."""
         if student is None:
             return None
         if student.pk == self.sender_id:
@@ -378,18 +282,15 @@ class RoommateRequest(models.Model):
         return None
 
     def contact_visible_to(self, student):
-        """
-        May this student see the other one's email and phone?
+        """May this student see the other one's email and phone?
 
-        TWO conditions, both required:
-          1. the request was ACCEPTED — pending and declined reveal nothing
-          2. the viewer is one of the two parties — nobody else, ever,
-             including staff browsing the site as a normal user
-
-        Declining later re-hides the details, because this is evaluated
-        fresh on every request rather than stored as a flag.
+        Two conditions: the request was accepted, and the viewer is one of
+        the two. Nothing is stored as a flag, so declining later hides the
+        details again straight away.
         """
-        return self.status == self.Status.ACCEPTED and self.involves(student)
+        if self.status != self.Status.ACCEPTED:
+            return False
+        return self.involves(student)
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver} ({self.get_status_display()})"
