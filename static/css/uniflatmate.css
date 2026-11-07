@@ -1,47 +1,563 @@
 /* ==========================================================================
-   uniflatmate.css
-
-   PLACEHOLDER — শুভ্রর ভাগ।
-
-   এখানে শুধু এটুকু আছে যাতে page গুলো পড়া যায়। আসল design layer
-   (brand colour, card, score ring, responsive navbar) শুভ্র লিখবে।
+   UniFlatMate — design layer
+   Sits on top of Bootstrap 5. Bootstrap handles the grid and the plumbing;
+   everything that makes the site look like *ours* lives here.
    ========================================================================== */
 
+:root {
+  /* brand */
+  --uf-deep:  #063c4a;
+  --uf-teal:  #028090;
+  --uf-sea:   #00a896;
+  --uf-mint:  #02c39a;
+  --uf-warn:  #e8590c;
+  --uf-amber: #f08c00;
+
+  /* neutrals */
+  --uf-ink:   #0b2b33;
+  --uf-muted: #5b7781;
+  --uf-line:  #dde9ed;
+  --uf-bg:    #f5f9fa;
+
+  --uf-radius: 14px;
+  --uf-shadow: 0 1px 2px rgba(6,60,74,.06), 0 8px 24px -12px rgba(6,60,74,.22);
+  --uf-shadow-lift: 0 2px 4px rgba(6,60,74,.08), 0 18px 36px -16px rgba(6,60,74,.32);
+}
+
 body {
-  font-family: system-ui, "Segoe UI", sans-serif;
-  margin: 0;
-  color: #0b2b33;
-  background: #f5f9fa;
-  line-height: 1.6;
+  background: var(--uf-bg);
+  color: var(--uf-ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-nav {
-  background: #063c4a;
-  padding: 12px 20px;
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
+/* --- navbar --------------------------------------------------------------- */
+.uf-nav {
+  background: linear-gradient(100deg, var(--uf-deep) 0%, var(--uf-teal) 55%, var(--uf-sea) 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 6px 18px -10px rgba(6,60,74,.5);
 }
-nav a { color: #fff; text-decoration: none; font-size: .95rem; }
-nav a:hover { text-decoration: underline; }
+.uf-nav .navbar-brand { letter-spacing: -.02em; }
+.uf-nav a.uf-navlink {
+  color: rgba(255,255,255,.82);
+  text-decoration: none;
+  font-size: .9rem;
+  padding: .3rem .6rem;
+  border-radius: 999px;
+  transition: background .15s ease, color .15s ease;
+}
+.uf-nav a.uf-navlink:hover { background: rgba(255,255,255,.14); color: #fff; }
 
-main { max-width: 900px; margin: 0 auto; padding: 20px; }
+/* --- hero ----------------------------------------------------------------- */
+.uf-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 2.6rem 2.2rem;
+  color: #fff;
+  background:
+    radial-gradient(120% 140% at 88% 0%, rgba(2,195,154,.55) 0%, rgba(2,195,154,0) 55%),
+    linear-gradient(115deg, var(--uf-deep) 0%, var(--uf-teal) 62%, #0a93a4 100%);
+}
+.uf-hero::after {
+  content: "";
+  position: absolute;
+  right: -70px; bottom: -110px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+.uf-hero h1 { font-weight: 700; letter-spacing: -.02em; }
+.uf-hero p  { color: rgba(255,255,255,.88); }
 
-h1 { font-size: 1.6rem; margin: 0 0 .4rem; }
-h2 { font-size: 1.1rem; margin: 1.4rem 0 .4rem; }
-
-.row {
+/* --- cards ---------------------------------------------------------------- */
+.uf-card {
   background: #fff;
-  border: 1px solid #dde9ed;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  border: 1px solid var(--uf-line);
+  border-radius: var(--uf-radius);
+  box-shadow: var(--uf-shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.uf-card:hover { transform: translateY(-3px); box-shadow: var(--uf-shadow-lift); }
+.uf-card--flat:hover { transform: none; box-shadow: var(--uf-shadow); }
+
+/* a thin coloured edge along the top of a card */
+.uf-card--accent { border-top: 3px solid var(--uf-sea); }
+.uf-card--accent-warm { border-top: 3px solid var(--uf-warn); }
+
+/* --- section label -------------------------------------------------------- */
+.uf-label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--uf-teal);
 }
 
-.msg   { background: #e8f6f3; border: 1px solid #bfe5dc; padding: 8px 12px; border-radius: 6px; }
-.error { color: #9c2a23; }
+/* --- avatar --------------------------------------------------------------- */
+.uf-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1.05rem; color: #fff;
+  background: linear-gradient(135deg, var(--uf-teal), var(--uf-mint));
+  flex: 0 0 42px;
+}
+.uf-avatar--lg { width: 68px; height: 68px; font-size: 1.7rem; flex-basis: 68px; }
 
-label { display: block; margin-top: 8px; font-size: .9rem; font-weight: 600; }
-input, select, textarea { padding: 6px 8px; font-size: .95rem; }
-button { padding: 6px 14px; font-size: .95rem; cursor: pointer; }
+/* --- score ring ----------------------------------------------------------- */
+/* usage: <div class="uf-ring" style="--p:92"><span>92<i>%</i></span></div>   */
+.uf-ring {
+  --p: 0;
+  --c: var(--uf-sea);
+  position: relative;
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), #e6eff2 0);
+  flex: 0 0 76px;
+}
+.uf-ring::before {
+  content: "";
+  position: absolute; inset: 7px;
+  border-radius: 50%;
+  background: #fff;
+}
+.uf-ring span {
+  position: relative;
+  font-weight: 700; font-size: 1.32rem; color: var(--c); line-height: 1;
+}
+.uf-ring span i { font-style: normal; font-size: .72rem; }
+.uf-ring--low  { --c: var(--uf-warn); }
+.uf-ring--mid  { --c: var(--uf-amber); }
+
+/* --- chips ---------------------------------------------------------------- */
+.uf-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .76rem; font-weight: 600;
+  padding: .22rem .6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.uf-chip--yes { background: #e4f7f2; color: #0a6b59; border-color: #c4ece2; }
+.uf-chip--no  { background: #f3f5f6; color: #7b8e95; border-color: #e4e9eb; }
+
+/* status pills */
+.uf-pill { font-size: .72rem; font-weight: 700; padding: .25rem .65rem; border-radius: 999px; }
+.uf-pill--pending  { background: #fff4e0; color: #9a5b00; }
+.uf-pill--accepted { background: #e2f7f0; color: #0a6b59; }
+.uf-pill--declined { background: #f1f3f4; color: #76868c; }
+.uf-pill--verified { background: var(--uf-sea); color: #fff; }
+
+/* --- stat tile ------------------------------------------------------------ */
+.uf-stat {
+  background: #fff;
+  border: 1px solid var(--uf-line);
+  border-radius: 12px;
+  padding: .7rem .85rem;
+}
+.uf-stat dt { font-size: .72rem; color: var(--uf-muted); font-weight: 600; }
+.uf-stat dd { margin: .15rem 0 0; font-weight: 700; font-size: 1.05rem; color: var(--uf-ink); }
+
+/* --- buttons -------------------------------------------------------------- */
+.btn-uf {
+  background: linear-gradient(120deg, var(--uf-teal), var(--uf-sea));
+  color: #fff; border: none; font-weight: 600;
+  box-shadow: 0 6px 14px -8px rgba(2,128,144,.9);
+  transition: filter .15s ease, transform .15s ease;
+}
+.btn-uf:hover { color: #fff; filter: brightness(1.07); transform: translateY(-1px); }
+.btn-uf-ghost {
+  background: #fff; color: var(--uf-teal);
+  border: 1px solid #bfe0e6; font-weight: 600;
+}
+.btn-uf-ghost:hover { background: #f0fafb; color: var(--uf-deep); }
+
+/* --- forms ---------------------------------------------------------------- */
+.uf-form-section {
+  background: #fff;
+  border: 1px solid var(--uf-line);
+  border-radius: var(--uf-radius);
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--uf-shadow);
+}
+.form-control, .form-select {
+  border-color: #cfe0e5;
+  border-radius: 9px;
+  padding: .48rem .75rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--uf-sea);
+  box-shadow: 0 0 0 .18rem rgba(0,168,150,.18);
+}
+
+/* --- empty state ---------------------------------------------------------- */
+.uf-empty {
+  border: 1.5px dashed #c9dde3;
+  border-radius: var(--uf-radius);
+  background: #fbfdfd;
+  padding: 1.6rem;
+  text-align: center;
+  color: var(--uf-muted);
+}
+
+/* --- misc ----------------------------------------------------------------- */
+.uf-muted { color: var(--uf-muted); }
+.uf-divider { height: 1px; background: var(--uf-line); border: 0; }
+.uf-footer { color: var(--uf-muted); font-size: .82rem; border-top: 1px solid var(--uf-line); }
+
+/* --- icon tile ------------------------------------------------------------ */
+/* A rounded square behind an inline SVG, so a feature card has an anchor
+   for the eye instead of starting with a wall of text.                       */
+.uf-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #e3f6f3, #d4eef2);
+  color: var(--uf-teal);
+  flex: 0 0 44px;
+}
+.uf-icon svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.uf-icon--warm { background: linear-gradient(135deg, #fdf0e0, #fde8d4); color: #b2560a; }
+
+/* --- numbered step -------------------------------------------------------- */
+.uf-step {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--uf-teal); color: #fff;
+  font-size: .8rem; font-weight: 700;
+  flex: 0 0 28px;
+}
+
+/* --- hero stats ----------------------------------------------------------- */
+.uf-hero-stats { display: flex; flex-wrap: wrap; gap: 1.8rem; }
+.uf-hero-stat strong {
+  display: block; font-size: 1.45rem; font-weight: 700; line-height: 1.1;
+}
+.uf-hero-stat span {
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .07em;
+  color: rgba(255,255,255,.72);
+}
+
+/* --- nav avatar ----------------------------------------------------------- */
+.uf-navavatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  background: rgba(255,255,255,.2);
+  color: #fff; font-weight: 700; font-size: .78rem;
+  border: 1px solid rgba(255,255,255,.35);
+}
+
+/* --- module status tag ---------------------------------------------------- */
+.uf-tag {
+  display: inline-block;
+  font-size: .66rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: .16rem .5rem; border-radius: 6px;
+}
+.uf-tag--live { background: #d9f3ec; color: #0a6b59; }
+.uf-tag--soon { background: #f0f3f5; color: #6d8088; }
+
+/* --- alerts --------------------------------------------------------------- */
+.alert { border: 1px solid var(--uf-line); border-radius: 11px; }
+.alert-success { background: #e6f7f1; border-color: #c6ebdf; color: #0a6b59; }
+.alert-danger  { background: #fdeceb; border-color: #f6d3d1; color: #9c2a23; }
+.alert-warning { background: #fff5e4; border-color: #f7e2bd; color: #8a5600; }
+.alert-info    { background: #e9f4f7; border-color: #cce5ec; color: #0d5a69; }
+
+/* --- match card accent ---------------------------------------------------- */
+.uf-match-head { display: flex; gap: .9rem; align-items: center; }
+.uf-warn-strip {
+  background: #fff3e6; color: #9a4b00;
+  font-size: .7rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: .35rem .8rem;
+  border-top: 1px solid #f7dfc4;
+  border-bottom: 1px solid #f7dfc4;
+}
+
+/* Bootstrap has no min-width-0 utility; flex children need it to truncate. */
+.min-w-0 { min-width: 0; }
+
+/* --- choice card (student vs owner) -------------------------------------- */
+.uf-choice {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  border: 1px solid var(--uf-line);
+  border-radius: var(--uf-radius);
+  box-shadow: var(--uf-shadow);
+  padding: 1.4rem;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.uf-choice:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--uf-shadow-lift);
+  border-color: #a8d8e0;
+  color: inherit;
+}
+
+/* --- form section heading ------------------------------------------------ */
+.uf-fieldset-title {
+  display: flex; align-items: center; gap: .55rem;
+  font-size: .95rem; font-weight: 700;
+  color: var(--uf-deep);
+  margin-bottom: .9rem;
+}
+.uf-fieldset-title .uf-step { width: 24px; height: 24px; font-size: .72rem; flex-basis: 24px; }
+
+/* --- auth column --------------------------------------------------------- */
+.uf-auth-aside {
+  background: linear-gradient(150deg, var(--uf-deep), var(--uf-teal));
+  color: #fff;
+  border-radius: var(--uf-radius);
+  padding: 1.5rem;
+}
+.uf-auth-aside li { font-size: .86rem; color: rgba(255,255,255,.88); margin-bottom: .5rem; }
+
+/* --- contact block (revealed only on an accepted connection) -------------- */
+.uf-icon--sm { width: 34px; height: 34px; border-radius: 10px; flex-basis: 34px; }
+.uf-icon--sm svg { width: 17px; height: 17px; }
+
+.uf-contact {
+  background: #f6fbfc;
+  border: 1px solid #ddeef1;
+  border-radius: 12px;
+  padding: .85rem;
+  display: grid;
+  gap: .7rem;
+}
+.uf-contact-row { display: flex; align-items: center; gap: .7rem; }
+.uf-contact-label {
+  font-size: .68rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--uf-muted);
+}
+.uf-contact a { color: var(--uf-teal); font-weight: 600; text-decoration: none; }
+.uf-contact a:hover { text-decoration: underline; }
+
+/* --- listings ------------------------------------------------------------- */
+.uf-thumb {
+  display: block;
+  width: 100%; height: 170px;
+  object-fit: cover;
+  background: #eef5f7;
+}
+.uf-thumb--empty {
+  display: grid; place-items: center;
+  color: var(--uf-muted);
+  border-bottom: 1px solid var(--uf-line);
+}
+
+.uf-rent { font-size: 1.5rem; font-weight: 700; color: var(--uf-deep); line-height: 1.1; }
+.uf-rent--sm { font-size: 1.1rem; }
+.uf-rent small { font-size: .72rem; font-weight: 600; color: var(--uf-muted); }
+
+.uf-distance {
+  flex: 0 0 auto;
+  font-size: .72rem; font-weight: 700;
+  background: #e4f7f2; color: #0a6b59;
+  border-radius: 999px; padding: .2rem .55rem;
+}
+
+.uf-chip--warn { background: #fff3e6; color: #9a4b00; border-color: #f7dfc4; }
+
+/* map picker */
+.uf-map {
+  height: 300px;
+  border-radius: 12px;
+  border: 1px solid var(--uf-line);
+  overflow: hidden;
+  z-index: 0;                 /* keeps Leaflet panes under the navbar */
+}
+
+/* amenity checkbox grid */
+.uf-amenity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: .4rem;
+}
+.uf-amenity {
+  display: flex; align-items: center; gap: .5rem;
+  border: 1px solid var(--uf-line);
+  border-radius: 10px;
+  padding: .45rem .6rem;
+  font-size: .84rem;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color .15s ease, background .15s ease;
+}
+.uf-amenity:hover { border-color: #a8d8e0; background: #f7fcfd; }
+.uf-amenity input { accent-color: var(--uf-sea); }
+
+/* photo upload slots */
+.uf-photo-slot {
+  border: 1.5px dashed #c9dde3;
+  border-radius: 12px;
+  padding: .7rem;
+  background: #fbfdfd;
+  display: grid;
+  gap: .4rem;
+}
+.uf-photo-preview {
+  width: 100%; height: 120px; object-fit: cover;
+  border-radius: 8px;
+}
+
+/* detail gallery */
+.uf-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+}
+.uf-gallery-item { margin: 0; position: relative; }
+.uf-gallery-item--lead { grid-column: span 4; }
+.uf-gallery-item img {
+  width: 100%; height: 110px; object-fit: cover;
+  border-radius: 10px; display: block;
+}
+.uf-gallery-item--lead img { height: 320px; }
+.uf-gallery-item figcaption {
+  position: absolute; left: .4rem; bottom: .4rem;
+  background: rgba(6,43,51,.72); color: #fff;
+  font-size: .68rem; font-weight: 600;
+  padding: .12rem .4rem; border-radius: 6px;
+}
+@media (max-width: 575px) {
+  .uf-gallery { grid-template-columns: repeat(2, 1fr); }
+  .uf-gallery-item--lead { grid-column: span 2; }
+  .uf-gallery-item--lead img { height: 200px; }
+}
+
+/* --- mess khata ----------------------------------------------------------- */
+.uf-mealrate { font-size: 2.6rem; font-weight: 700; line-height: 1.05; }
+
+.uf-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.uf-table th {
+  text-align: left;
+  font-size: .68rem; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--uf-muted);
+  padding: .6rem .8rem;
+  border-bottom: 1px solid var(--uf-line);
+  background: #f8fbfc;
+}
+.uf-table td { padding: .6rem .8rem; border-bottom: 1px solid var(--uf-line); }
+.uf-table tr:last-child td { border-bottom: 0; }
+.uf-table .text-end { text-align: right; }
+
+.uf-avatar--sm { width: 28px; height: 28px; font-size: .78rem; flex-basis: 28px; }
+
+.uf-pos { color: #0a6b59; }
+.uf-neg { color: var(--uf-warn); }
+
+/* --- reviews -------------------------------------------------------------- */
+.uf-rating { font-size: 1.9rem; font-weight: 700; color: var(--uf-deep); line-height: 1; }
+.uf-rating small { font-size: .8rem; font-weight: 600; color: var(--uf-muted); }
+.uf-stars { font-size: .95rem; letter-spacing: .06em; color: #d8e4e8; white-space: nowrap; }
+.uf-stars .on { color: var(--uf-amber); }
+
+/* --- pagination ----------------------------------------------------------- */
+.uf-pager {
+  display: flex; align-items: center; justify-content: center;
+  gap: .5rem; margin-top: 1.6rem;
+}
+.uf-page {
+  font-size: .84rem; font-weight: 600; text-decoration: none;
+  color: var(--uf-teal); background: #fff;
+  border: 1px solid #bfe0e6; border-radius: 999px;
+  padding: .32rem .8rem;
+}
+.uf-page:hover { background: #f0fafb; color: var(--uf-deep); }
+.uf-page--off { color: #a8bcc3; border-color: var(--uf-line); }
+.uf-page-count { font-size: .8rem; color: var(--uf-muted); padding: 0 .4rem; }
+
+/* ==========================================================================
+   RESPONSIVE — phone and tablet
+   Bootstrap's grid handles the columns. These are the pieces it cannot:
+   the navigation, a wide table, and a few things sized for a laptop.
+   ========================================================================== */
+
+.uf-nav { position: relative; }
+
+/* --- the menu: a row on a laptop, a drop-down panel on a phone ----------- */
+.uf-menu { display: flex; align-items: center; gap: .15rem; }
+.uf-menu-only { display: none; }          /* only inside the phone panel */
+
+.uf-burger {
+  display: none;                           /* laptop: the links are visible */
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  border-radius: 10px;
+  padding: .3rem .4rem;
+  line-height: 0;
+  cursor: pointer;
+}
+.uf-burger:hover { background: rgba(255,255,255,.24); }
+
+@media (max-width: 991.98px) {
+  .uf-burger { display: inline-flex; }
+
+  .uf-menu {
+    display: none;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: .4rem .9rem .9rem;
+    background: linear-gradient(170deg, var(--uf-deep), var(--uf-teal));
+    box-shadow: 0 16px 30px -12px rgba(6,60,74,.5);
+    border-top: 1px solid rgba(255,255,255,.14);
+    z-index: 1030;
+  }
+  .uf-menu.open { display: flex; }
+
+  .uf-menu .uf-navlink {
+    display: block;
+    padding: .65rem .7rem;
+    border-radius: 10px;
+    font-size: .95rem;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .uf-menu .uf-navlink:last-child { border-bottom: 0; }
+  .uf-menu-only { display: block; }
+}
+
+/* --- wide tables scroll sideways instead of breaking the page ------------ */
+.uf-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.uf-table-wrap .uf-table { min-width: 520px; }
+
+/* --- phone sizing -------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  .uf-hero { padding: 1.7rem 1.2rem; border-radius: 16px; }
+  .uf-hero h1, .display-6 { font-size: 1.7rem; }
+  .uf-hero-stats { gap: 1.1rem; }
+  .uf-hero-stat strong { font-size: 1.2rem; }
+  .uf-mealrate { font-size: 2rem; }
+
+  .uf-ring { width: 64px; height: 64px; flex-basis: 64px; }
+  .uf-ring span { font-size: 1.1rem; }
+  .uf-ring::before { inset: 6px; }
+
+  .uf-gallery-item--lead img { height: 180px; }
+  .uf-thumb { height: 150px; }
+  .uf-map { height: 240px; }
+
+  .uf-footer .container { flex-direction: column; gap: .2rem; }
+
+  /* a row of small buttons should wrap, not squash */
+  .uf-card .btn-sm { white-space: nowrap; }
+}
+
+/* On a phone the khata drops the two intermediate columns rather than
+   pushing BALANCE — the number everyone opened the page for — off the
+   right edge. The full breakdown is still there on a tablet or laptop. */
+@media (max-width: 575.98px) {
+  .uf-table-wrap .uf-table { min-width: 0; }
+  .uf-table th:nth-child(3), .uf-table td:nth-child(3),
+  .uf-table th:nth-child(4), .uf-table td:nth-child(4) { display: none; }
+  .uf-table th, .uf-table td { padding: .55rem .5rem; }
+  .uf-table .uf-pill { display: none; }     /* the Manager chip; crowds it */
+}
