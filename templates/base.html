@@ -5,38 +5,110 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}UniFlatMate{% endblock %}</title>
+  <!-- Bootstrap 5 via CDN: one line, no build step, no npm -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="{% static 'css/uniflatmate.css' %}" rel="stylesheet">
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
-<nav>
-  <a href="/"><b>UniFlatMate</b></a>
-  {% if user.is_authenticated %}
-    {% if not is_owner %}
-      <a href="{% url 'matching:match_list' %}">Matches</a>
-      {% if listings_enabled %}<a href="{% url 'listings:search' %}">Rooms</a>{% endif %}
-      {% if mess_enabled %}<a href="{% url 'mess:my_mess' %}">Meals</a>{% endif %}
-      <a href="{% url 'accounts:requests_inbox' %}">Requests</a>
-      <a href="{% url 'accounts:connections' %}">Connections</a>
-    {% else %}
-      {% if listings_enabled %}<a href="{% url 'listings:dashboard' %}">My listings</a>{% endif %}
+  <nav class="navbar navbar-dark uf-nav py-2">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5 12 4l9 6.5"></path>
+          <path d="M5 9.5V20h14V9.5"></path>
+          <path d="M9.5 20v-5h5v5"></path>
+        </svg>
+        UniFlatMate
+      </a>
+      <div class="ms-auto d-flex align-items-center gap-1">
+        {% if user.is_authenticated %}
+
+          {# On a laptop this is a row of links in the bar. On a phone the
+             same markup becomes a drop-down panel, opened by the button
+             below — so there is one list of links, not two to keep in
+             sync. See .uf-menu in uniflatmate.css. #}
+          <div class="uf-menu" id="uf-menu">
+            {% if is_owner %}
+              <a class="uf-navlink" href="{% url 'listings:dashboard' %}">My listings</a>
+              <a class="uf-navlink" href="{% url 'listings:seat_requests' %}">Seat requests</a>
+              <a class="uf-navlink" href="{% url 'reviews:owner_reviews' user.pk %}">My reviews</a>
+            {% else %}
+              <a class="uf-navlink" href="{% url 'matching:match_list' %}">Matches</a>
+              <a class="uf-navlink" href="{% url 'listings:search' %}">Rooms</a>
+              <a class="uf-navlink" href="{% url 'mess:my_mess' %}">Meals</a>
+              <a class="uf-navlink" href="{% url 'accounts:requests_inbox' %}">Requests</a>
+              <a class="uf-navlink" href="{% url 'accounts:connections' %}">Connections</a>
+            {% endif %}
+            {# inside the panel on a phone, so the whole menu is in one place #}
+            <a class="uf-navlink uf-menu-only" href="{% url 'accounts:profile' %}">My profile</a>
+          </div>
+
+          <a class="uf-navlink d-flex align-items-center gap-2"
+             href="{% url 'accounts:profile' %}">
+            <span class="uf-navavatar">{{ user.username|first|upper }}</span>
+            <span class="d-none d-md-inline">{{ user.username }}</span>
+          </a>
+          <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-uf-ghost">Log out</button>
+          </form>
+
+          <button class="uf-burger" id="uf-burger" type="button"
+                  aria-label="Open menu" aria-expanded="false"
+                  aria-controls="uf-menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+        {% else %}
+          <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:signup' %}">Sign up</a>
+          <a class="btn btn-sm btn-uf-ghost" href="{% url 'login' %}">Log in</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4 flex-grow-1">
+    {% if messages %}
+      {% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} py-2 small">{{ m }}</div>
+      {% endfor %}
     {% endif %}
-    <a href="{% url 'accounts:profile' %}">{{ user.username }}</a>
-    <form method="post" action="{% url 'logout' %}" style="display:inline">
-      {% csrf_token %}<button>Log out</button>
-    </form>
-  {% else %}
-    <a href="{% url 'accounts:signup' %}">Sign up</a>
-    <a href="{% url 'login' %}">Log in</a>
-  {% endif %}
-</nav>
+    {% block content %}{% endblock %}
+  </main>
 
-<main>
-  {% if messages %}{% for m in messages %}<p class="msg">{{ m }}</p>{% endfor %}{% endif %}
-  {% block content %}{% endblock %}
-</main>
+  <footer class="uf-footer py-3 mt-4">
+    <div class="container d-flex flex-wrap justify-content-between gap-2">
+      <span>UniFlatMate — a student networking and shared-living platform.</span>
+      <span>No payments pass through this site.</span>
+    </div>
+  </footer>
 
-{% block extra_js %}{% endblock %}
+  <script>
+    // The phone menu. Nine lines of plain JavaScript instead of pulling in
+    // Bootstrap's whole JS bundle, which this project uses for nothing else.
+    (function () {
+      var burger = document.getElementById("uf-burger");
+      var menu = document.getElementById("uf-menu");
+      if (!burger || !menu) return;
+      burger.addEventListener("click", function () {
+        var open = menu.classList.toggle("open");
+        burger.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      // tapping anywhere else closes it
+      document.addEventListener("click", function (e) {
+        if (!menu.contains(e.target) && !burger.contains(e.target)) {
+          menu.classList.remove("open");
+          burger.setAttribute("aria-expanded", "false");
+        }
+      });
+    })();
+  </script>
+
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
