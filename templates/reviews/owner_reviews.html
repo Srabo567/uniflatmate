@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Reviews of {{ owner.username }} · UniFlatMate{% endblock %}
+{% block content %}
+
+  <div class="uf-card uf-card--flat p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span class="uf-avatar uf-avatar--lg">{{ owner.username|first|upper }}</span>
+        <div>
+          <span class="uf-label">Owner</span>
+          <h1 class="h4 mb-1">{{ owner.username }}</h1>
+          <p class="uf-muted mb-0 small">
+            {% if owner.is_verified %}Verified by an admin{% else %}Not yet verified{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="text-end">
+        <div class="uf-rating">
+          {{ owner.owner_rating|floatformat:1 }}<small>/5</small>
+        </div>
+        <div class="uf-stars">
+          {% for i in "12345" %}
+            <span class="{% if forloop.counter <= owner.owner_rating %}on{% endif %}">★</span>
+          {% endfor %}
+        </div>
+        <div class="form-text">
+          {{ owner.review_count }} review{{ owner.review_count|pluralize }}
+        </div>
+      </div>
+    </div>
+
+    {% if can_review %}
+      <a class="btn btn-sm btn-uf mt-3"
+         href="{% url 'reviews:write_review' owner.pk %}">Write a review</a>
+    {% elif my_review %}
+      <div class="d-flex gap-2 mt-3">
+        <a class="btn btn-sm btn-uf-ghost"
+           href="{% url 'reviews:write_review' owner.pk %}">Edit my review</a>
+        <form method="post" action="{% url 'reviews:delete_review' owner.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-uf-ghost">Delete my review</button>
+        </form>
+      </div>
+    {% elif student %}
+      <p class="form-text mb-0 mt-3">
+        You can review an owner once they have accepted one of your seat
+        requests. That is what stops ratings being written by people who
+        never lived there.
+      </p>
+    {% endif %}
+  </div>
+
+  <h2 class="h6 mb-2">What students said</h2>
+  <div class="row g-3">
+    {% for r in reviews %}
+      <div class="col-lg-6">
+        <div class="uf-card uf-card--flat h-100 p-3">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="uf-avatar">
+                {% if r.is_anonymous %}?{% else %}{{ r.author.username|first|upper }}{% endif %}
+              </span>
+              <div>
+                <strong class="d-block">{{ r.display_name }}</strong>
+                <small class="uf-muted">{{ r.created_at|date:"j M Y" }}</small>
+              </div>
+            </div>
+            <span class="uf-stars">
+              {% for i in "12345" %}
+                <span class="{% if forloop.counter <= r.rating %}on{% endif %}">★</span>
+              {% endfor %}
+            </span>
+          </div>
+          {% if r.comment %}
+            <p class="small mt-3 mb-0">{{ r.comment|linebreaksbr }}</p>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <p class="small mb-0">
+            No reviews yet. The first student to live here can write one.
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <p class="small uf-muted mt-4 mb-0">
+    Reviews are anonymous by default — a student may still be living in the
+    owner's house when they write one.
+  </p>
+{% endblock %}

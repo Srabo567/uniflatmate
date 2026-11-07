@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{{ mess.mess_name }} · UniFlatMate{% endblock %}
+{% block content %}
+
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div>
+      <span class="uf-label">Shared meals</span>
+      <h1 class="h3 mt-1 mb-1">{{ mess.mess_name }}</h1>
+      <p class="uf-muted small mb-0">
+        {{ mess.listing.area }} · {{ mess.member_count }} member{{ mess.member_count|pluralize }}
+        · manager: {{ mess.manager.username }}
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-uf" href="{% url 'mess:add_meal' mess.pk %}">+ Meals</a>
+      <a class="btn btn-sm btn-uf-ghost" href="{% url 'mess:add_expense' mess.pk %}">+ Expense</a>
+      {% if is_manager %}
+        <a class="btn btn-sm btn-uf-ghost" href="{% url 'mess:members' mess.pk %}">Members</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ===== the number everyone opens this page for ===== -->
+  <div class="uf-hero mt-3 py-4">
+    <div class="row align-items-center g-3">
+      <div class="col-md-5">
+        <span class="uf-label" style="color:rgba(255,255,255,.75)">Meal rate this month</span>
+        <div class="uf-mealrate">৳{{ meal_rate|floatformat:2 }}</div>
+        <p class="mb-0 small" style="color:rgba(255,255,255,.8)">per meal</p>
+      </div>
+      <div class="col-md-7">
+        <div class="uf-hero-stats justify-content-md-end">
+          <div class="uf-hero-stat">
+            <strong>৳{{ total_expense|floatformat:0 }}</strong>
+            <span>Total spent</span>
+          </div>
+          <div class="uf-hero-stat">
+            <strong>{{ total_meals|floatformat:1 }}</strong>
+            <span>Meals recorded</span>
+          </div>
+          <div class="uf-hero-stat">
+            <strong>{{ mess.member_count }}</strong>
+            <span>Members</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="small uf-muted mt-2">
+    Meal rate = total shared expense ÷ total meals recorded. UniFlatMate
+    records no payment — settle up between yourselves.
+  </p>
+
+  <!-- ===== balances ===== -->
+  <h2 class="h6 mt-4 mb-2">Who owes what</h2>
+  <div class="uf-card uf-card--flat overflow-hidden uf-table-wrap">
+    <table class="uf-table">
+      <thead>
+        <tr>
+          <th>Member</th><th class="text-end">Meals</th>
+          <th class="text-end">Paid in</th><th class="text-end">Meals cost</th>
+          <th class="text-end">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>
+              <span class="d-flex align-items-center gap-2">
+                <span class="uf-avatar uf-avatar--sm">{{ r.student.username|first|upper }}</span>
+                {{ r.student.username }}
+                {% if r.student.pk == mess.manager_id %}
+                  <span class="uf-pill uf-pill--verified">Manager</span>
+                {% endif %}
+              </span>
+            </td>
+            <td class="text-end">{{ r.meals|floatformat:1 }}</td>
+            <td class="text-end">৳{{ r.paid|floatformat:0 }}</td>
+            <td class="text-end">৳{{ r.consumed|floatformat:0 }}</td>
+            <td class="text-end fw-bold {% if r.balance < 0 %}uf-neg{% else %}uf-pos{% endif %}">
+              {% if r.balance < 0 %}owes ৳{{ r.balance|floatformat:0|cut:"-" }}
+              {% else %}gets ৳{{ r.balance|floatformat:0 }}{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="uf-muted small">No members yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="form-text mt-2">
+    A positive balance means the group owes them; negative means they owe
+    the group.
+  </p>
+
+  <!-- ===== recent entries ===== -->
+  <div class="row g-4 mt-2">
+    <div class="col-lg-6">
+      <h2 class="h6 mb-2">Recent meals</h2>
+      {% for m in recent_meals %}
+        <div class="uf-card uf-card--flat p-2 mb-2 d-flex justify-content-between align-items-center gap-2">
+          <span class="small">
+            <strong>{{ m.student.username }}</strong> · {{ m.meal_date|date:"j M" }}
+          </span>
+          <span class="d-flex align-items-center gap-2">
+            <span class="uf-chip uf-chip--yes">{{ m.meal_count|floatformat:1 }} meals</span>
+            {% if is_manager %}
+              <form method="post" action="{% url 'mess:delete_meal' mess.pk m.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-uf-ghost">Remove</button>
+              </form>
+            {% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <div class="uf-empty"><p class="small mb-0">No meals recorded yet.</p></div>
+      {% endfor %}
+    </div>
+
+    <div class="col-lg-6">
+      <h2 class="h6 mb-2">Recent expenses</h2>
+      {% for e in recent_expenses %}
+        <div class="uf-card uf-card--flat p-2 mb-2 d-flex justify-content-between align-items-center gap-2">
+          <span class="small">
+            <strong>{{ e.payer.username }}</strong> · {{ e.spent_on|date:"j M" }}
+            {% if e.note %}<span class="uf-muted">— {{ e.note }}</span>{% endif %}
+          </span>
+          <span class="uf-chip uf-chip--no">
+            {{ e.get_expense_type_display }} ৳{{ e.amount|floatformat:0 }}
+          </span>
+        </div>
+      {% empty %}
+        <div class="uf-empty"><p class="small mb-0">No expenses recorded yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+
+{% endblock %}

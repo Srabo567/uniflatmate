@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Review {{ owner.username }} · UniFlatMate{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <span class="uf-label">Review</span>
+      <h1 class="h3 mt-1 mb-1">
+        {% if editing %}Edit your review{% else %}Review {{ owner.username }}{% endif %}
+      </h1>
+      <p class="uf-muted small mb-4">
+        Be specific and fair. Other students will choose where to live based
+        on this.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="uf-form-section">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="{{ form.rating.id_for_label }}">
+              {{ form.rating.label }}
+            </label>
+            {{ form.rating }}
+            {% for e in form.rating.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="{{ form.comment.id_for_label }}">
+              {{ form.comment.label }}
+            </label>
+            {{ form.comment }}
+            {% for e in form.comment.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="form-check">
+            {{ form.is_anonymous }}
+            <label class="form-check-label small" for="{{ form.is_anonymous.id_for_label }}">
+              {{ form.is_anonymous.label }}
+            </label>
+            <div class="form-text small">{{ form.is_anonymous.help_text }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-uf">
+            {% if editing %}Save changes{% else %}Post review{% endif %}
+          </button>
+          <a class="btn btn-uf-ghost" href="{% url 'reviews:owner_reviews' owner.pk %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

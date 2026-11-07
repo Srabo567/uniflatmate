@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Members · {{ mess.mess_name }}{% endblock %}
+{% block content %}
+
+  <span class="uf-label">{{ mess.mess_name }}</span>
+  <h1 class="h3 mt-1 mb-1">Members</h1>
+  <p class="uf-muted small" style="max-width:62ch">
+    You are the manager, so you add and remove people here. Removing
+    somebody keeps their past meals and expenses in the khata — taking a
+    person out must never change what everyone else already owes.
+  </p>
+
+  <div class="row g-4 mt-1">
+
+    <!-- ===== current members ===== -->
+    <div class="col-lg-6">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <h2 class="h6 mb-0">In this mess</h2>
+        <span class="uf-pill uf-pill--accepted">{{ current|length }}</span>
+      </div>
+
+      {% for m in current %}
+        <div class="uf-card uf-card--flat mb-2 p-3 d-flex justify-content-between align-items-center gap-2">
+          <div class="d-flex gap-2 align-items-center">
+            <span class="uf-avatar">{{ m.username|first|upper }}</span>
+            <div class="min-w-0">
+              <strong class="d-block">{{ m.username }}</strong>
+              <small class="uf-muted">{{ m.public_label }}</small>
+            </div>
+          </div>
+          {% if m.pk == mess.manager_id %}
+            <span class="uf-pill uf-pill--verified">Manager</span>
+          {% else %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="student" value="{{ m.pk }}">
+              <button name="action" value="remove" class="btn btn-sm btn-uf-ghost">
+                Remove
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="uf-empty"><p class="small mb-0">Nobody yet.</p></div>
+      {% endfor %}
+    </div>
+
+    <!-- ===== add someone ===== -->
+    <div class="col-lg-6">
+      <h2 class="h6 mb-2">Add a member</h2>
+      <p class="form-text mb-2">
+        Students at {{ student.university }} who are not already in a mess.
+      </p>
+
+      {% for c in candidates %}
+        <div class="uf-card uf-card--flat mb-2 p-3 d-flex justify-content-between align-items-center gap-2">
+          <div class="d-flex gap-2 align-items-center">
+            <span class="uf-avatar">{{ c.username|first|upper }}</span>
+            <div class="min-w-0">
+              <strong class="d-block">{{ c.username }}</strong>
+              <small class="uf-muted">{{ c.public_label }}</small>
+            </div>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="student" value="{{ c.pk }}">
+            <button name="action" value="add" class="btn btn-sm btn-uf">Add</button>
+          </form>
+        </div>
+      {% empty %}
+        <div class="uf-empty">
+          <p class="small mb-0">
+            Nobody available. Everyone at your university is either already
+            in this mess or in another one.
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <a class="btn btn-sm btn-uf-ghost mt-3" href="{% url 'mess:dashboard' mess.pk %}">
+    Back to the khata
+  </a>
+{% endblock %}

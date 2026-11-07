@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Shared meals · UniFlatMate{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-7 py-3">
+      <div class="uf-card uf-card--flat p-4 text-center">
+        <div class="uf-icon mx-auto mb-3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10h16"></path><path d="M6 10a6 6 0 0 0 12 0"></path>
+            <path d="M4 20h16"></path><path d="M9 4v2M12 3v3M15 4v2"></path>
+          </svg>
+        </div>
+        <h1 class="h4 mb-2">You are not in a mess yet</h1>
+        <p class="uf-muted mb-3">
+          A mess is the group you share meals with at one address. Once you
+          are a member, this page becomes your meal khata — who ate how
+          many meals, who paid for the bazaar, and the meal rate at the end
+          of the month.
+        </p>
+        <p class="form-text mb-3">
+          Your mess manager adds you from the admin panel, or an admin can
+          set it on your student record.
+        </p>
+        <a class="btn btn-uf-ghost" href="{% url 'listings:search' %}">
+          Find a place near your campus
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
