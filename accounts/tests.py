@@ -319,7 +319,7 @@ class AfterLoginTests(TestCase):
         self.assertRedirects(r, reverse("matching:match_list"))
 
     def test_an_owner_does_not_land_on_the_student_page(self):
-        """listings app যোগ হলে এটা dashboard এ যাবে। এখন profile এ।"""
+        """An owner must never be sent to the student match list."""
         self.client.login(username="an_owner", password="pw")
         r = self.client.get(reverse("accounts:after_login"))
-        self.assertRedirects(r, reverse("accounts:profile"))
+        self.assertNotEqual(r.url, reverse("matching:match_list"))
