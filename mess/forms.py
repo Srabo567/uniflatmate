@@ -1,13 +1,15 @@
-"""mess/forms.py — meal entry and expense entry."""
+"""Meal entry and expense entry."""
 
 from django import forms
 
 from .models import DailyMeal, MessExpense
 
 
-def _style(form):
+def add_bootstrap_classes(form):
+    """Give every widget the right Bootstrap class."""
     for field in form.fields.values():
         widget = field.widget
+
         if isinstance(widget, forms.CheckboxInput):
             widget.attrs.setdefault("class", "form-check-input")
         elif isinstance(widget, forms.Select):
@@ -17,12 +19,11 @@ def _style(form):
 
 
 class DailyMealForm(forms.ModelForm):
-    """
-    One row: this student ate this many meals on this day.
+    """One row: this student ate this many meals on this day.
 
-    The unique constraint on (student, mess, meal_date) means a second
-    entry for the same day is a database error rather than a duplicate, so
-    clean() turns that into a readable message instead of a 500 page.
+    The unique constraint already stops a second row for the same day, but
+    that shows as a 500 page. clean() catches it first and says it in
+    words.
     """
 
     class Meta:
@@ -38,27 +39,35 @@ class DailyMealForm(forms.ModelForm):
     def __init__(self, *args, mess=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.mess = mess
+
+        # Only this mess's members. Without it the dropdown would list
+        # every student on the platform.
         if mess is not None:
-            # Only this mess's own members. Without this the dropdown lists
-            # every student on the platform.
             self.fields["student"].queryset = mess.members.all()
-        _style(self)
+
+        add_bootstrap_classes(self)
 
     def clean(self):
         cleaned = super().clean()
         student = cleaned.get("student")
         meal_date = cleaned.get("meal_date")
 
-        if self.mess and student and meal_date:
-            clash = DailyMeal.objects.filter(
-                mess=self.mess, student=student, meal_date=meal_date)
-            if self.instance.pk:
-                clash = clash.exclude(pk=self.instance.pk)
-            if clash.exists():
-                raise forms.ValidationError(
-                    f"{student.username} already has an entry for "
-                    f"{meal_date}. Edit that row instead of adding a second."
-                )
+        if self.mess is None or student is None or meal_date is None:
+            return cleaned
+
+        clash = DailyMeal.objects.filter(
+            mess=self.mess, student=student, meal_date=meal_date)
+
+        # When editing, the row being edited is not a clash with itself.
+        if self.instance.pk:
+            clash = clash.exclude(pk=self.instance.pk)
+
+        if clash.exists():
+            raise forms.ValidationError(
+                f"{student.username} already has an entry for {meal_date}. "
+                f"Edit that row instead of adding a second."
+            )
+
         return cleaned
 
 
@@ -79,12 +88,16 @@ class MessExpenseForm(forms.ModelForm):
 
     def __init__(self, *args, mess=None, **kwargs):
         super().__init__(*args, **kwargs)
+
         if mess is not None:
             self.fields["payer"].queryset = mess.members.all()
-        _style(self)
+
+        add_bootstrap_classes(self)
 
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
+
         if amount <= 0:
             raise forms.ValidationError("Amount must be more than zero.")
+
         return amount
