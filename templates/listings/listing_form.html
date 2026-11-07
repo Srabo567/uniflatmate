@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if mode == "edit" %}Edit listing{% else %}Post a room{% endif %} · UniFlatMate
+{% endblock %}
+
+{% block extra_head %}
+  <!-- Leaflet: free OpenStreetMap tiles. No API key, no credit card. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <span class="uf-label">Owner</span>
+      <h1 class="h3 mt-1 mb-1">
+        {% if mode == "edit" %}Edit listing{% else %}Post a room{% endif %}
+      </h1>
+      <p class="uf-muted small mb-4">
+        The more of this you fill in, the fewer questions students will ask
+        you over the phone.
+      </p>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <!-- 1 — the basics -->
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">1</span> The basics</div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold" for="{{ form.title.id_for_label }}">
+                {{ form.title.label }}
+              </label>
+              {{ form.title }}
+              {% for e in form.title.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold" for="{{ form.description.id_for_label }}">
+                Description
+              </label>
+              {{ form.description }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.rent.id_for_label }}">
+                {{ form.rent.label }}
+              </label>
+              {{ form.rent }}
+              <div class="form-text small">{{ form.rent.help_text }}</div>
+              {% for e in form.rent.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.seats_total.id_for_label }}">
+                {{ form.seats_total.label }}
+              </label>
+              {{ form.seats_total }}
+              {% for e in form.seats_total.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.seats_available.id_for_label }}">
+                {{ form.seats_available.label }}
+              </label>
+              {{ form.seats_available }}
+              {% for e in form.seats_available.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="{{ form.available_from.id_for_label }}">
+                Available from
+              </label>
+              {{ form.available_from }}
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 — where it is -->
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">2</span> Where it is</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="{{ form.area.id_for_label }}">
+                Area
+              </label>
+              {{ form.area }}
+              {% for e in form.area.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="{{ form.floor.id_for_label }}">
+                {{ form.floor.label }}
+              </label>
+              {{ form.floor }}
+              <div class="form-text small">{{ form.floor.help_text }}</div>
+            </div>
+          </div>
+
+          <p class="small fw-semibold mt-3 mb-1">Drop a pin on the building</p>
+          <p class="form-text mb-2">
+            Drag the marker, or click the map. This is what puts your room
+            inside a student's "within 2 km of my campus" search. Skip it
+            and we use the centre of the area you picked.
+          </p>
+          <div id="uf-map" class="uf-map"></div>
+          <div class="form-text mt-1" id="uf-coords">No pin dropped yet.</div>
+
+          {{ form.latitude }}
+          {{ form.longitude }}
+        </div>
+
+        <!-- 3 — the details students ask about -->
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">3</span> What it's like</div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.washroom.id_for_label }}">
+                {{ form.washroom.label }}
+              </label>
+              {{ form.washroom }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.furnishing.id_for_label }}">
+                Furnishing
+              </label>
+              {{ form.furnishing }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.cooking.id_for_label }}">
+                {{ form.cooking.label }}
+              </label>
+              {{ form.cooking }}
+            </div>
+          </div>
+
+          <p class="small fw-semibold mt-3 mb-2">What the place has</p>
+          <div class="uf-amenity-grid">
+            {% for checkbox in form.amenities %}
+              <label class="uf-amenity">
+                {{ checkbox.tag }}
+                <span>{{ checkbox.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 4 — photos -->
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">4</span> Photos</div>
+          <p class="form-text mb-3">
+            The room, the kitchen, the washroom. A listing without photos is
+            the one students scroll past.
+          </p>
+
+          {{ photos.management_form }}
+          {% if photos.non_form_errors %}
+            <div class="alert alert-danger small">{{ photos.non_form_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3">
+            {% for pf in photos %}
+              <div class="col-md-6">
+                <div class="uf-photo-slot">
+                  {{ pf.id }}
+                  {% if pf.instance.pk and pf.instance.image %}
+                    <img class="uf-photo-preview" src="{{ pf.instance.image.url }}" alt="">
+                  {% endif %}
+                  {{ pf.image }}
+                  {{ pf.caption }}
+                  <div class="d-flex gap-3 mt-2">
+                    <label class="small d-flex align-items-center gap-1">
+                      {{ pf.is_cover }} Cover photo
+                    </label>
+                    {% if pf.instance.pk %}
+                      <label class="small d-flex align-items-center gap-1 text-danger">
+                        {{ pf.DELETE }} Remove
+                      </label>
+                    {% endif %}
+                  </div>
+                  {% for e in pf.image.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 5 — switches -->
+        <div class="uf-form-section">
+          <div class="uf-fieldset-title"><span class="uf-step">5</span> Visibility</div>
+          <div class="form-check mb-2">
+            {{ form.is_female_only }}
+            <label class="form-check-label small" for="{{ form.is_female_only.id_for_label }}">
+              {{ form.is_female_only.label }}
+            </label>
+            <div class="form-text small">{{ form.is_female_only.help_text }}</div>
+          </div>
+          <div class="form-check">
+            {{ form.is_available }}
+            <label class="form-check-label small" for="{{ form.is_available.id_for_label }}">
+              {{ form.is_available.label }}
+            </label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-uf">
+            {% if mode == "edit" %}Save changes{% else %}Post listing{% endif %}
+          </button>
+          <a class="btn btn-uf-ghost" href="{% url 'listings:dashboard' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="uf-auth-aside">
+        <h2 class="h6 mb-3">What students see</h2>
+        <ul class="list-unstyled mb-0">
+          <li>✓ Your listing, photos, rent and distance from their campus</li>
+          <li>✓ Your username and rating — <strong>never your phone number</strong></li>
+          <li>✓ Your number only after you accept their seat request</li>
+          <li>✓ Nobody pays anything through UniFlatMate</li>
+        </ul>
+      </div>
+      <div class="uf-card uf-card--flat p-3 mt-3">
+        <p class="small uf-muted mb-0">
+          Tick <strong>female students only</strong> and the listing is
+          removed from everyone else's search in the database — it is not
+          merely hidden on screen.
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  // The two hidden inputs the map writes into.
+  var latInput = document.getElementById("{{ form.latitude.auto_id }}");
+  var lonInput = document.getElementById("{{ form.longitude.auto_id }}");
+  var readout  = document.getElementById("uf-coords");
+
+  // Dhaka, roughly, when the listing has no pin yet.
+  var start = [23.7806, 90.4074];
+  var hasPin = !!(latInput.value && lonInput.value);
+  if (hasPin) start = [parseFloat(latInput.value), parseFloat(lonInput.value)];
+
+  var map = L.map("uf-map").setView(start, hasPin ? 16 : 12);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  var marker = null;
+
+  function setPin(latlng) {
+    if (marker) {
+      marker.setLatLng(latlng);
+    } else {
+      marker = L.marker(latlng, { draggable: true }).addTo(map);
+      marker.on("dragend", function () { setPin(marker.getLatLng()); });
+    }
+    latInput.value = latlng.lat.toFixed(6);
+    lonInput.value = latlng.lng.toFixed(6);
+    readout.textContent = "Pin at " + latInput.value + ", " + lonInput.value;
+  }
+
+  if (hasPin) setPin(L.latLng(start[0], start[1]));
+  map.on("click", function (e) { setPin(e.latlng); });
+
+  // Picking an area re-centres the map there, so the owner is not hunting
+  // across the whole city for their own building.
+  var areaSelect = document.getElementById("{{ form.area.auto_id }}");
+  var AREA_COORDS = {{ area_coords|safe|default:"{}" }};
+  if (areaSelect) {
+    areaSelect.addEventListener("change", function () {
+      var c = AREA_COORDS[areaSelect.value];
+      if (c) map.setView(c, 15);
+    });
+  }
+})();
+</script>
+{% endblock %}

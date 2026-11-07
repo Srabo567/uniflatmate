@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}My listings · UniFlatMate{% endblock %}
+{% block content %}
+
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div>
+      <span class="uf-label">Owner</span>
+      <h1 class="h3 mt-1 mb-1">My listings</h1>
+      <p class="uf-muted small mb-0">
+        Rent is shown to students as information. It is paid directly to
+        you — UniFlatMate records no payment.
+      </p>
+    </div>
+    <a class="btn btn-uf" href="{% url 'listings:create' %}">+ Post a room</a>
+  </div>
+
+  <div class="row g-2 mt-3">
+    <div class="col-6 col-md-3">
+      <div class="uf-stat h-100"><dt>Listings</dt><dd>{{ listings|length }}</dd></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="uf-stat h-100"><dt>Live right now</dt><dd>{{ live_count }}</dd></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="uf-stat h-100"><dt>Seats free</dt><dd>{{ seats_free }}</dd></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="uf-stat h-100">
+        <dt>Requests waiting</dt>
+        <dd>
+          {{ total_pending }}
+          {% if total_pending %}
+            <a class="small fw-normal d-block"
+               href="{% url 'listings:seat_requests' %}">Open inbox →</a>
+          {% endif %}
+        </dd>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    {% for l in listings %}
+      <div class="col-md-6 col-xl-4">
+        <div class="uf-card h-100 d-flex flex-column overflow-hidden">
+
+          {% if l.cover_photo %}
+            <img class="uf-thumb" src="{{ l.cover_photo.image.url }}" alt="{{ l.title }}">
+          {% else %}
+            <div class="uf-thumb uf-thumb--empty">
+              <span class="small">No photo yet</span>
+            </div>
+          {% endif %}
+
+          <div class="p-3 flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <h2 class="h6 mb-1">{{ l.title }}</h2>
+              {% if l.is_available %}
+                <span class="uf-pill uf-pill--accepted">Live</span>
+              {% else %}
+                <span class="uf-pill uf-pill--declined">Hidden</span>
+              {% endif %}
+            </div>
+            <p class="small uf-muted mb-2">
+              {{ l.area }} · Floor {{ l.floor }} · ৳{{ l.rent|floatformat:0 }}/month
+            </p>
+
+            <div class="d-flex flex-wrap gap-1">
+              <span class="uf-chip uf-chip--yes">
+                {{ l.seats_available }} of {{ l.seats_total }} seats free
+              </span>
+              {% if l.is_female_only %}
+                <span class="uf-chip uf-chip--yes">Female only</span>
+              {% endif %}
+              {% if l.pending_count %}
+                <span class="uf-chip uf-chip--warn">
+                  {{ l.pending_count }} request{{ l.pending_count|pluralize }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="p-3 pt-0 d-flex gap-2">
+            <a class="btn btn-sm btn-uf-ghost" href="{% url 'listings:detail' l.pk %}">View</a>
+            <a class="btn btn-sm btn-uf-ghost" href="{% url 'listings:edit' l.pk %}">Edit</a>
+            <form method="post" action="{% url 'listings:toggle' l.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-uf-ghost">
+                {% if l.is_available %}Hide{% else %}Make live{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <p class="small mb-2">
+            No listings yet. Post a room and verified students near your
+            building will find it.
+          </p>
+          <a class="btn btn-sm btn-uf" href="{% url 'listings:create' %}">
+            Post your first room
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+{% endblock %}

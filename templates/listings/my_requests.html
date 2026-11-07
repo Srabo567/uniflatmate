@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}My seat requests · UniFlatMate{% endblock %}
+{% block content %}
+
+  <span class="uf-label">Seats</span>
+  <h1 class="h3 mt-1 mb-1">My seat requests</h1>
+  <p class="uf-muted small" style="max-width:64ch">
+    Rooms you asked about. The <strong>owner</strong> decides these — unlike
+    a roommate request, which the other student decides. Their contact
+    details appear here once they accept.
+  </p>
+
+  <div class="row g-3 mt-1">
+    {% for row in rows %}
+      {% with req=row.request %}
+        <div class="col-lg-6">
+          <div class="uf-card uf-card--flat h-100 p-3">
+
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="min-w-0">
+                <strong class="d-block">
+                  <a class="text-decoration-none" href="{% url 'listings:detail' req.listing.pk %}">
+                    {{ req.listing.title }}
+                  </a>
+                </strong>
+                <small class="uf-muted">
+                  {{ req.listing.area }} · ৳{{ req.listing.rent|floatformat:0 }}/month
+                </small>
+              </div>
+              <span class="uf-pill
+                {% if req.status == 'P' %}uf-pill--pending
+                {% elif req.status == 'A' %}uf-pill--accepted
+                {% else %}uf-pill--declined{% endif %}">
+                {{ req.get_status_display }}
+              </span>
+            </div>
+
+            {% if row.contact_visible %}
+              <div class="uf-contact mt-3">
+                <div class="uf-contact-row">
+                  <div class="min-w-0">
+                    <div class="uf-contact-label">Owner</div>
+                    <span class="fw-semibold">{{ req.listing.owner.username }}</span>
+                  </div>
+                </div>
+                <div class="uf-contact-row">
+                  <div class="min-w-0">
+                    <div class="uf-contact-label">Phone</div>
+                    {% if req.listing.owner.contact_number %}
+                      <a href="tel:{{ req.listing.owner.contact_number }}">{{ req.listing.owner.contact_number }}</a>
+                    {% else %}
+                      <span class="uf-muted small">Not shared — use email</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="uf-contact-row">
+                  <div class="min-w-0">
+                    <div class="uf-contact-label">Email</div>
+                    <a class="text-break" href="mailto:{{ req.listing.owner.email }}">{{ req.listing.owner.email }}</a>
+                  </div>
+                </div>
+              </div>
+            {% elif req.status == "P" %}
+              <p class="form-text mb-0 mt-3">
+                Waiting on the owner. Nothing of yours is shared until they accept.
+              </p>
+            {% endif %}
+
+          </div>
+        </div>
+      {% endwith %}
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <p class="small mb-0">
+            You have not requested a seat yet —
+            <a href="{% url 'listings:search' %}">search near your campus</a>.
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

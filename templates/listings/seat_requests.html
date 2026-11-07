@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Seat requests · UniFlatMate{% endblock %}
+{% block content %}
+
+  <span class="uf-label">Owner inbox</span>
+  <h1 class="h3 mt-1 mb-1">Seat requests</h1>
+  <p class="uf-muted small" style="max-width:64ch">
+    Students asking for a seat in one of your rooms. <strong>You decide</strong> —
+    this is the opposite of a roommate request, where the other student
+    decides. Accepting reveals your phone number to that student, and
+    theirs to you, and takes one seat off the listing.
+  </p>
+
+  {% if pending %}
+    <p class="small"><span class="uf-pill uf-pill--pending">{{ pending }} waiting</span></p>
+  {% endif %}
+
+  <div class="row g-3 mt-1">
+    {% for row in rows %}
+      {% with req=row.request %}
+        <div class="col-lg-6">
+          <div class="uf-card uf-card--flat h-100 p-3">
+
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="d-flex gap-2">
+                <span class="uf-avatar">{{ req.student.username|first|upper }}</span>
+                <div class="min-w-0">
+                  <strong class="d-block">{{ req.student.username }}</strong>
+                  <small class="uf-muted">{{ req.student.public_label }}</small>
+                </div>
+              </div>
+              <span class="uf-pill
+                {% if req.status == 'P' %}uf-pill--pending
+                {% elif req.status == 'A' %}uf-pill--accepted
+                {% else %}uf-pill--declined{% endif %}">
+                {{ req.get_status_display }}
+              </span>
+            </div>
+
+            <p class="small uf-muted mt-2 mb-0">
+              For <a href="{% url 'listings:detail' req.listing.pk %}">{{ req.listing.title }}</a>
+              · {{ req.listing.area }}
+            </p>
+
+            {% if req.message %}
+              <p class="small mt-2 mb-0 fst-italic">“{{ req.message }}”</p>
+            {% endif %}
+
+            {% if row.contact_visible %}
+              <div class="uf-contact mt-3">
+                <div class="uf-contact-row">
+                  <div class="min-w-0">
+                    <div class="uf-contact-label">Email</div>
+                    <a class="text-break" href="mailto:{{ req.student.email }}">{{ req.student.email }}</a>
+                  </div>
+                </div>
+                <div class="uf-contact-row">
+                  <div class="min-w-0">
+                    <div class="uf-contact-label">Phone</div>
+                    {% if req.student.contact_number %}
+                      <a href="tel:{{ req.student.contact_number }}">{{ req.student.contact_number }}</a>
+                    {% else %}
+                      <span class="uf-muted small">Not shared — use email</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            {% if req.status == "P" %}
+              <form method="post" class="mt-3 d-flex gap-2"
+                    action="{% url 'listings:respond_seat_request' req.pk %}">
+                {% csrf_token %}
+                <button name="action" value="accept" class="btn btn-sm btn-uf">Accept</button>
+                <button name="action" value="reject" class="btn btn-sm btn-uf-ghost">Reject</button>
+              </form>
+              <p class="form-text mb-0 mt-2">
+                {{ req.listing.seats_available }} seat{{ req.listing.seats_available|pluralize }}
+                free on this listing.
+              </p>
+            {% endif %}
+
+          </div>
+        </div>
+      {% endwith %}
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <p class="small mb-0">
+            No seat requests yet. They appear here when a student asks for
+            a seat in one of your listings.<br>
+            <a href="{% url 'listings:dashboard' %}">Back to my listings</a>
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title }} · UniFlatMate{% endblock %}
+
+{% block content %}
+  <div class="row g-4">
+
+    <!-- ===== left: photos and details ===== -->
+    <div class="col-lg-8">
+
+      {% if listing.photos.all %}
+        <div class="uf-gallery mb-3">
+          {% for p in listing.photos.all %}
+            <figure class="uf-gallery-item {% if forloop.first %}uf-gallery-item--lead{% endif %}">
+              <img src="{{ p.image.url }}" alt="{{ p.caption|default:listing.title }}">
+              {% if p.caption %}<figcaption>{{ p.caption }}</figcaption>{% endif %}
+            </figure>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="uf-thumb uf-thumb--empty mb-3" style="height:220px">
+          <span class="small">The owner has not added photos yet</span>
+        </div>
+      {% endif %}
+
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+          <span class="uf-label">{{ listing.area }}</span>
+          <h1 class="h3 mt-1 mb-1">{{ listing.title }}</h1>
+        </div>
+        <div class="text-end">
+          <div class="uf-rent">৳{{ listing.rent|floatformat:0 }}</div>
+          <div class="form-text">per month · paid to the owner directly</div>
+        </div>
+      </div>
+
+      {% if listing.description %}
+        <p class="mt-3">{{ listing.description|linebreaksbr }}</p>
+      {% endif %}
+
+      <div class="row g-2 mt-2">
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100"><dt>Floor</dt><dd>{{ listing.floor }}</dd></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100"><dt>Washroom</dt><dd>{{ listing.get_washroom_display }}</dd></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100"><dt>Furnishing</dt><dd>{{ listing.get_furnishing_display }}</dd></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100"><dt>Cooking</dt><dd>{{ listing.get_cooking_display }}</dd></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100">
+            <dt>Seats</dt><dd>{{ listing.seats_available }} of {{ listing.seats_total }} free</dd>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="uf-stat h-100">
+            <dt>Available from</dt><dd>{{ listing.available_from|date:"j M Y" }}</dd>
+          </div>
+        </div>
+      </div>
+
+      {% if listing.amenities.all %}
+        <h2 class="h6 mt-4 mb-2">What the place has</h2>
+        <div class="d-flex flex-wrap gap-1">
+          {% for a in listing.amenities.all %}
+            <span class="uf-chip uf-chip--yes">{{ a.name }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if listing.is_female_only %}
+        <div class="alert alert-info small mt-4 mb-0">
+          <strong>Female students only.</strong> This listing is filtered
+          out of other students' search results in the database, not hidden
+          on screen.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ===== right: action panel ===== -->
+    <div class="col-lg-4">
+      <div class="uf-card uf-card--flat p-3">
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="uf-avatar">{{ listing.owner.username|first|upper }}</span>
+          <div class="min-w-0">
+            <strong class="d-block text-truncate">{{ listing.owner.username }}</strong>
+            <small class="uf-muted">
+              Owner
+              {% if listing.owner.is_verified %} · <span class="uf-pill uf-pill--verified">Verified</span>{% endif %}
+            </small>
+          </div>
+        </div>
+
+        <a class="d-flex align-items-center gap-2 text-decoration-none mb-3"
+           href="{% url 'reviews:owner_reviews' listing.owner.pk %}">
+          <span class="uf-stars">
+            {% for i in "12345" %}
+              <span class="{% if forloop.counter <= listing.owner.owner_rating %}on{% endif %}">★</span>
+            {% endfor %}
+          </span>
+          <small class="uf-muted">
+            {{ listing.owner.owner_rating|floatformat:1 }} ·
+            {{ listing.owner.review_count }} review{{ listing.owner.review_count|pluralize }}
+          </small>
+        </a>
+
+        {% if is_my_listing %}
+          <p class="small uf-muted">This is your listing.</p>
+          <a class="btn btn-uf w-100 mb-2" href="{% url 'listings:edit' listing.pk %}">Edit listing</a>
+          <a class="btn btn-uf-ghost w-100" href="{% url 'listings:seat_requests' %}">
+            Seat requests
+          </a>
+
+        {% elif student %}
+          {% if contact_visible %}
+            <div class="uf-contact mb-3">
+              <div class="uf-contact-row">
+                <div class="min-w-0">
+                  <div class="uf-contact-label">Owner's phone</div>
+                  {% if listing.owner.contact_number %}
+                    <a href="tel:{{ listing.owner.contact_number }}">{{ listing.owner.contact_number }}</a>
+                  {% else %}
+                    <span class="uf-muted small">Not shared — use email</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="uf-contact-row">
+                <div class="min-w-0">
+                  <div class="uf-contact-label">Email</div>
+                  <a class="text-break" href="mailto:{{ listing.owner.email }}">{{ listing.owner.email }}</a>
+                </div>
+              </div>
+            </div>
+            <p class="form-text mb-0">
+              Your request was accepted. Arrange the viewing directly —
+              UniFlatMate handles no money.
+            </p>
+
+          {% elif existing_request %}
+            <p class="small mb-2">
+              Your request is
+              <span class="uf-pill
+                {% if existing_request.status == 'P' %}uf-pill--pending
+                {% elif existing_request.status == 'A' %}uf-pill--accepted
+                {% else %}uf-pill--declined{% endif %}">
+                {{ existing_request.get_status_display }}
+              </span>
+            </p>
+            <p class="form-text mb-0">
+              The owner decides. Their contact number appears here if they
+              accept.
+            </p>
+
+          {% elif listing.seats_available < 1 %}
+            <button class="btn btn-uf-ghost w-100" disabled>No seats left</button>
+
+          {% else %}
+            <form method="post" action="{% url 'listings:request_seat' listing.pk %}">
+              {% csrf_token %}
+              <label class="form-label small fw-semibold" for="{{ form.message.id_for_label }}">
+                {{ form.message.label }}
+              </label>
+              {{ form.message }}
+              <button class="btn btn-uf w-100 mt-2">Request a seat</button>
+              <p class="form-text mb-0 mt-2">
+                The owner decides. Nothing is shared until they accept.
+              </p>
+            </form>
+          {% endif %}
+
+        {% else %}
+          <p class="small uf-muted mb-0">
+            Seat requests are for student accounts.
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="uf-card uf-card--flat p-3 mt-3">
+        <p class="small uf-muted mb-0">
+          UniFlatMate records no payment. Rent, advance and any deposit are
+          arranged directly between you and the owner — see the room before
+          you agree to anything.
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Seats near {{ student.university }} · UniFlatMate{% endblock %}
+
+{% block content %}
+  <span class="uf-label">Search</span>
+  <h1 class="h3 mt-1 mb-1">Seats near your campus</h1>
+  <p class="uf-muted small">
+    Straight-line distance from <strong>{{ student.university.name }}</strong>.
+    Rent is listed as information — it is paid directly to the owner.
+  </p>
+
+  <form method="get" class="uf-form-section mt-3">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold" for="{{ form.radius_km.id_for_label }}">
+          {{ form.radius_km.label }}
+        </label>
+        {{ form.radius_km }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold" for="{{ form.max_rent.id_for_label }}">
+          {{ form.max_rent.label }}
+        </label>
+        {{ form.max_rent }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold" for="{{ form.washroom.id_for_label }}">
+          {{ form.washroom.label }}
+        </label>
+        {{ form.washroom }}
+      </div>
+      <div class="col-md-3 d-flex align-items-center gap-2">
+        <div class="form-check mb-0">
+          {{ form.female_only }}
+          <label class="form-check-label small" for="{{ form.female_only.id_for_label }}">
+            {{ form.female_only.label }}
+          </label>
+        </div>
+        <button class="btn btn-sm btn-uf ms-auto">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <p class="small uf-muted mt-3 mb-0">
+    {{ total }} room{{ total|pluralize }} within {{ radius }} km.
+  </p>
+
+  <div class="row g-3 mt-1">
+    {% for r in results %}
+      <div class="col-md-6 col-xl-4">
+        <div class="uf-card h-100 d-flex flex-column overflow-hidden">
+
+          <a href="{% url 'listings:detail' r.listing.pk %}" class="text-decoration-none">
+            {% if r.listing.cover_photo %}
+              <img class="uf-thumb" src="{{ r.listing.cover_photo.image.url }}"
+                   alt="{{ r.listing.title }}">
+            {% else %}
+              <div class="uf-thumb uf-thumb--empty"><span class="small">No photo</span></div>
+            {% endif %}
+          </a>
+
+          <div class="p-3 flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+              <h2 class="h6 mb-0">
+                <a class="text-decoration-none" href="{% url 'listings:detail' r.listing.pk %}">
+                  {{ r.listing.title }}
+                </a>
+              </h2>
+              <span class="uf-distance">{{ r.distance_km }} km</span>
+            </div>
+
+            <p class="small uf-muted mb-2">
+              {{ r.listing.area }} · Floor {{ r.listing.floor }}
+            </p>
+
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <span class="uf-chip uf-chip--yes">{{ r.listing.get_washroom_display }}</span>
+              <span class="uf-chip uf-chip--no">{{ r.listing.get_furnishing_display }}</span>
+              <span class="uf-chip uf-chip--no">
+                {{ r.listing.seats_available }} seat{{ r.listing.seats_available|pluralize }} free
+              </span>
+              {% if r.listing.is_female_only %}
+                <span class="uf-chip uf-chip--yes">Female only</span>
+              {% endif %}
+            </div>
+
+            <div class="uf-rent uf-rent--sm">৳{{ r.listing.rent|floatformat:0 }}<small>/month</small></div>
+          </div>
+
+          <div class="p-3 pt-0">
+            {% if r.listing.pk in already_requested %}
+              <button class="btn btn-sm btn-uf-ghost w-100" disabled>Request already sent</button>
+            {% else %}
+              <a class="btn btn-sm btn-uf w-100" href="{% url 'listings:detail' r.listing.pk %}">
+                View and request
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="uf-empty">
+          <p class="small mb-0">
+            Nothing within {{ radius }} km yet. Try a wider radius, or
+            relax the filters.<br>
+            Owners are still being added — listings appear here as soon as
+            they post.
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% include "_pagination.html" %}
+{% endblock %}
