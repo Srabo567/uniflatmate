@@ -1,7 +1,27 @@
 {% extends "base.html" %}
+{% block title %}Link not valid · UniFlatMate{% endblock %}
 {% block content %}
-  <h1>That link didn't work</h1>
-  <p>Each link works once. It may already have been used, or the account is active already.</p>
-  <a href="{% url 'login' %}">Try logging in</a>
-  <a href="{% url 'accounts:signup' %}">Back to sign up</a>
+  <div class="row justify-content-center">
+    <div class="col-lg-6 py-4">
+      <div class="uf-card uf-card--flat p-4 text-center">
+        <div class="uf-icon uf-icon--warm mx-auto mb-3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7.5v5M12 16h.01"></path>
+          </svg>
+        </div>
+        <h1 class="h4 mb-2">That link didn't work</h1>
+        <p class="uf-muted">
+          Each link works once. It may already have been used, or the account
+          is active already — the token stops working the moment it is.
+          Try logging in; if that fails, sign up again.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+          <a class="btn btn-uf" href="{% url 'login' %}">Try logging in</a>
+          <a class="btn btn-uf-ghost" href="{% url 'accounts:signup' %}">Back to sign up</a>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

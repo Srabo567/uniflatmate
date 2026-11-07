@@ -1,16 +1,117 @@
 {% extends "base.html" %}
 {% block title %}Student sign up · UniFlatMate{% endblock %}
+
 {% block content %}
-  <h1>Create your student account</h1>
-  <p>Sign up with your university email. A confirmation link is sent there.</p>
+  <div class="row g-4">
 
-  {% if form.non_field_errors %}<p class="error">{{ form.non_field_errors }}</p>{% endif %}
+    <!-- ===== form ===== -->
+    <div class="col-lg-8">
+      <span class="uf-label">Student account</span>
+      <h1 class="h3 mt-1 mb-1">Create your account</h1>
+      <p class="uf-muted small mb-4" style="max-width:56ch">
+        Sign up with your university email. We send a confirmation link to
+        that address — the account stays inactive until you click it.
+      </p>
 
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button>Create account</button>
-  </form>
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-  <p><a href="{% url 'login' %}">I already have an account</a></p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">1</span> Account</div>
+          <div class="row g-3">
+            {% for f in form %}
+              {% if f.name in "username,email,password1,password2,gender,contact_number" %}
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold" for="{{ f.id_for_label }}">
+                    {{ f.label }}
+                  </label>
+                  {{ f }}
+                  {% if f.help_text %}<div class="form-text small">{{ f.help_text }}</div>{% endif %}
+                  {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="uf-form-section mb-3">
+          <div class="uf-fieldset-title"><span class="uf-step">2</span> University</div>
+          <div class="row g-3">
+            {% for f in form %}
+              {% if f.name in "university,department,batch_season,batch_year,roll_number" %}
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold" for="{{ f.id_for_label }}">
+                    {{ f.label }}
+                  </label>
+                  {{ f }}
+                  {% if f.help_text %}<div class="form-text small">{{ f.help_text }}</div>{% endif %}
+                  {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="uf-form-section">
+          <div class="uf-fieldset-title"><span class="uf-step">3</span> Lifestyle</div>
+          <p class="small uf-muted mb-3">
+            These four answers are the entire compatibility score. Be honest —
+            a wrong answer only gets you a roommate you will argue with.
+          </p>
+          <div class="row g-3 align-items-start">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold" for="{{ form.budget.id_for_label }}">
+                {{ form.budget.label }}
+              </label>
+              {{ form.budget }}
+              {% for e in form.budget.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-8">
+              {% for f in form %}
+                {% if f.name in "smokes,sleeps_early,study_at_home" %}
+                  <div class="form-check">
+                    {{ f }}
+                    <label class="form-check-label small" for="{{ f.id_for_label }}">
+                      {{ f.label }}
+                    </label>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-4">
+          <button class="btn btn-uf">Create account</button>
+          <a class="btn btn-uf-ghost" href="{% url 'login' %}">I already have an account</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- ===== aside ===== -->
+    <div class="col-lg-4">
+      <div class="uf-auth-aside">
+        <h2 class="h6 mb-3">Why the email matters</h2>
+        <ul class="list-unstyled mb-0">
+          <li>✓ The domain must match the university you pick — a UAP account
+              needs a <code class="text-white">@uap-bd.edu</code> address.</li>
+          <li>✓ A roll number proves nothing; anyone can type one.</li>
+          <li>✓ Your roll number is stored privately and never shown.</li>
+          <li>✓ You are only matched with students of the same gender, at
+              your own campus.</li>
+        </ul>
+      </div>
+
+      <div class="uf-card uf-card--flat p-3 mt-3">
+        <p class="small uf-muted mb-0">
+          UniFlatMate never handles rent, deposits or any payment. Rent
+          appears on a listing as information only.
+        </p>
+      </div>
+    </div>
+  </div>
 {% endblock %}

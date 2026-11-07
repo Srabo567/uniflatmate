@@ -1,15 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Log in · UniFlatMate{% endblock %}
+
 {% block content %}
-  <h1>Log in</h1>
-  {% if form.errors %}
-    <p class="error">Wrong username or password — or the account has not been verified yet.</p>
-  {% endif %}
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button>Log in</button>
-  </form>
-  <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
-  <p>No account yet? <a href="{% url 'accounts:signup' %}">Sign up</a>.</p>
+  <div class="row justify-content-center align-items-center g-4 py-3">
+    <div class="col-lg-5">
+      <span class="uf-label">Welcome back</span>
+      <h1 class="h3 mt-1 mb-3">Log in</h1>
+
+      {% if form.errors %}
+        <div class="alert alert-danger small">
+          Wrong username or password — or the account has not been verified
+          yet. Check the confirmation link first.
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="uf-form-section">
+          {{ form.as_div }}
+        </div>
+        <button class="btn btn-uf mt-3 w-100">Log in</button>
+      </form>
+
+      <p class="small uf-muted mt-3 mb-1">
+        <a href="{% url 'password_reset' %}">Forgot your password?</a>
+      </p>
+      <p class="small uf-muted mb-0">
+        No account yet? <a href="{% url 'accounts:signup' %}">Sign up as a student</a>
+        or <a href="{% url 'accounts:signup_owner' %}">as an owner</a>.
+      </p>
+    </div>
+
+    <div class="col-lg-5 d-none d-lg-block">
+      <div class="uf-auth-aside">
+        <h2 class="h6 mb-3">Inside UniFlatMate</h2>
+        <ul class="list-unstyled mb-0">
+          <li>✓ A compatibility score for every student on your campus</li>
+          <li>✓ The reasoning shown beside the number, not just a result</li>
+          <li>✓ Roommate requests that only the other student can accept</li>
+          <li>✓ Seats near your university, by distance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 {% endblock %}

@@ -1,37 +1,105 @@
 {% extends "base.html" %}
 {% block title %}Roommate requests · UniFlatMate{% endblock %}
 {% block content %}
-  <h1>Roommate requests</h1>
-  <p>A roommate request goes to the other student, and only that student can answer it.</p>
 
-  <h2>Received ({{ received|length }})</h2>
-  {% for r in received %}
-    <div class="row">
-      <b>{{ r.sender.username }}</b> — {{ r.sender.public_label }}
-      [{{ r.get_status_display }}]
-      {% if r.message %}<p>&ldquo;{{ r.message }}&rdquo;</p>{% endif %}
-      {% if r.status == "P" %}
-        <form method="post" action="{% url 'accounts:respond_request' r.pk %}">
-          {% csrf_token %}
-          <button name="action" value="accept">Accept</button>
-          <button name="action" value="decline">Decline</button>
-        </form>
-        <p>Accepting reveals your email and phone to them, and theirs to you.</p>
-      {% elif r.status == "A" %}
-        <a href="{% url 'accounts:connections' %}">See contact details</a>
-      {% endif %}
-    </div>
-  {% empty %}
-    <p>Nobody has sent you a request yet.</p>
-  {% endfor %}
+  <span class="uf-label">Inbox</span>
+  <h1 class="h3 mt-1 mb-1">Roommate requests</h1>
+  <p class="uf-muted small" style="max-width:62ch">
+    A roommate request goes to the <strong>other student</strong>, and only
+    that student can answer it. Seat requests are a different thing — those
+    go to the owner of a listing.
+  </p>
 
-  <h2>Sent ({{ sent|length }})</h2>
-  {% for r in sent %}
-    <div class="row">
-      <b>{{ r.receiver.username }}</b> — {{ r.receiver.public_label }}
-      [{{ r.get_status_display }}]
+  <div class="row g-4 mt-1">
+
+    <!-- ===== received ===== -->
+    <div class="col-lg-6">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <h2 class="h6 mb-0">Received</h2>
+        <span class="uf-pill uf-pill--pending">{{ received|length }}</span>
+      </div>
+
+      {% for r in received %}
+        <div class="uf-card uf-card--flat mb-2 p-3">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="d-flex gap-2">
+              <span class="uf-avatar">{{ r.sender.username|first|upper }}</span>
+              <div>
+                <strong class="d-block">{{ r.sender.username }}</strong>
+                <small class="uf-muted">{{ r.sender.public_label }}</small>
+                {% if r.message %}
+                  <p class="small mt-2 mb-0 fst-italic">“{{ r.message }}”</p>
+                {% endif %}
+              </div>
+            </div>
+            <span class="uf-pill
+              {% if r.status == 'P' %}uf-pill--pending
+              {% elif r.status == 'A' %}uf-pill--accepted
+              {% else %}uf-pill--declined{% endif %}">
+              {{ r.get_status_display }}
+            </span>
+          </div>
+
+          {% if r.status == "P" %}
+            <form method="post" action="{% url 'accounts:respond_request' r.pk %}"
+                  class="mt-3 d-flex gap-2">
+              {% csrf_token %}
+              <button name="action" value="accept" class="btn btn-sm btn-uf">Accept</button>
+              <button name="action" value="decline" class="btn btn-sm btn-uf-ghost">Decline</button>
+            </form>
+            <p class="form-text mb-0 mt-2">
+              Accepting reveals your email and phone to them, and theirs to you.
+            </p>
+          {% elif r.status == "A" %}
+            <a class="btn btn-sm btn-uf-ghost mt-3"
+               href="{% url 'accounts:connections' %}">See contact details →</a>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="uf-empty">
+          <p class="small mb-0">Nobody has sent you a request yet.</p>
+        </div>
+      {% endfor %}
     </div>
-  {% empty %}
-    <p>You have not sent any yet — <a href="{% url 'matching:match_list' %}">see your matches</a>.</p>
-  {% endfor %}
+
+    <!-- ===== sent ===== -->
+    <div class="col-lg-6">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <h2 class="h6 mb-0">Sent</h2>
+        <span class="uf-pill uf-pill--declined">{{ sent|length }}</span>
+      </div>
+
+      {% for r in sent %}
+        <div class="uf-card uf-card--flat mb-2 p-3
+                    d-flex justify-content-between align-items-start gap-2">
+          <div class="d-flex gap-2">
+            <span class="uf-avatar">{{ r.receiver.username|first|upper }}</span>
+            <div>
+              <strong class="d-block">{{ r.receiver.username }}</strong>
+              <small class="uf-muted">{{ r.receiver.public_label }}</small>
+            </div>
+          </div>
+          <div class="text-end">
+            <span class="uf-pill
+              {% if r.status == 'P' %}uf-pill--pending
+              {% elif r.status == 'A' %}uf-pill--accepted
+              {% else %}uf-pill--declined{% endif %}">
+              {{ r.get_status_display }}
+            </span>
+            {% if r.status == "A" %}
+              <a class="d-block small mt-2" href="{% url 'accounts:connections' %}">Contact details</a>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="uf-empty">
+          <p class="small mb-0">
+            You have not sent any yet —
+            <a href="{% url 'matching:match_list' %}">see your matches</a>.
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
 {% endblock %}

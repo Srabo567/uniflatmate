@@ -1,12 +1,39 @@
 {% extends "base.html" %}
+{% block title %}Edit preferences · UniFlatMate{% endblock %}
 {% block content %}
-  <h1>Edit preferences</h1>
-  <p>Changing these changes who you match with. Username, email, university and roll
-  number cannot be edited — your account was verified against them.</p>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button>Save changes</button>
-  </form>
-  <a href="{% url 'accounts:profile' %}">Cancel</a>
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <span class="uf-label">Preferences</span>
+      <h1 class="h3 mt-1 mb-1">Edit your answers</h1>
+      <p class="uf-muted small mb-4">
+        Changing these changes who you match with. Username, email,
+        university and roll number cannot be edited — your account was
+        verified against them.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="uf-form-section">
+          {% for f in form %}
+            {% if f.field.widget.input_type == "checkbox" %}
+              <div class="form-check mb-2">
+                {{ f }}
+                <label class="form-check-label small" for="{{ f.id_for_label }}">{{ f.label }}</label>
+              </div>
+            {% else %}
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="{{ f.id_for_label }}">{{ f.label }}</label>
+                {{ f }}
+                {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-uf">Save changes</button>
+          <a class="btn btn-uf-ghost" href="{% url 'accounts:profile' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock %}

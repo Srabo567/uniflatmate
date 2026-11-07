@@ -1,14 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Owner sign up · UniFlatMate{% endblock %}
 {% block content %}
-  <h1>Owner account</h1>
-  <p>Post listings and respond to seat requests. No payments pass through UniFlatMate.</p>
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <span class="uf-label">Owner account</span>
+      <h1 class="h3 mt-1 mb-1">Post rooms and mess seats</h1>
+      <p class="uf-muted small mb-4">
+        Respond to seat requests from verified students. No payments pass
+        through UniFlatMate — rent is arranged directly with the student.
+      </p>
 
-  {% if form.non_field_errors %}<p class="error">{{ form.non_field_errors }}</p>{% endif %}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button>Create account</button>
-  </form>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="uf-form-section">
+          {% for f in form %}
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="{{ f.id_for_label }}">{{ f.label }}</label>
+              {{ f }}
+              {% if f.help_text %}<div class="form-text small">{{ f.help_text }}</div>{% endif %}
+              {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-uf">Create account</button>
+          <a class="btn btn-uf-ghost" href="{% url 'accounts:signup' %}">Back</a>
+        </div>
+      </form>
+
+      <p class="small uf-muted mt-4 mb-0">
+        Owner accounts are confirmed by an admin after the email link is
+        clicked, which is why your badge says "awaiting verification" at first.
+      </p>
+    </div>
+  </div>
 {% endblock %}

@@ -1,16 +1,63 @@
 {% extends "base.html" %}
 {% block title %}Sign up · UniFlatMate{% endblock %}
 {% block content %}
-  <h1>Create an account</h1>
-  <p>Two kinds of account, two different jobs.</p>
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
 
-  <h2>I'm a student</h2>
-  <p>Find a compatible roommate and a seat near your campus. Needs a university email.</p>
-  <a href="{% url 'accounts:signup_student' %}">Student sign up</a>
+      <div class="text-center mb-4">
+        <span class="uf-label">Create an account</span>
+        <h1 class="h3 mt-1 mb-1">Two kinds of account, two different jobs</h1>
+        <p class="uf-muted small mb-0">Pick the one that describes you.</p>
+      </div>
 
-  <h2>I'm an owner</h2>
-  <p>Post a room and respond to seat requests. No payments pass through this site.</p>
-  <a href="{% url 'accounts:signup_owner' %}">Owner sign up</a>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <a class="uf-choice h-100 d-flex flex-column" href="{% url 'accounts:signup_student' %}">
+            <div class="uf-icon mb-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 8.5 12 4.5l9 4-9 4-9-4Z"></path>
+                <path d="M7 11v4.5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V11"></path>
+              </svg>
+            </div>
+            <h2 class="h6">I'm a student</h2>
+            <p class="small uf-muted">
+              Find a compatible roommate, search seats near your campus, and
+              keep shared meal records with your mess.
+            </p>
+            <p class="small mb-3">
+              <span class="uf-chip uf-chip--yes">University email required</span>
+            </p>
+            <span class="btn btn-sm btn-uf mt-auto align-self-start">Student sign up →</span>
+          </a>
+        </div>
 
-  <p>Already have an account? <a href="{% url 'login' %}">Log in</a>.</p>
+        <div class="col-md-6">
+          <a class="uf-choice h-100 d-flex flex-column" href="{% url 'accounts:signup_owner' %}">
+            <div class="uf-icon uf-icon--warm mb-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10.5 12 4l9 6.5"></path>
+                <path d="M5 9.5V20h14V9.5"></path>
+                <path d="M10 20v-5h4v5"></path>
+              </svg>
+            </div>
+            <h2 class="h6">I'm an owner</h2>
+            <p class="small uf-muted">
+              Post a room or mess seat and respond to requests from students.
+              Rent is arranged directly between you and the student.
+            </p>
+            <p class="small mb-3">
+              <span class="uf-chip uf-chip--no">No payments handled here</span>
+            </p>
+            <span class="btn btn-sm btn-uf-ghost mt-auto align-self-start">Owner sign up →</span>
+          </a>
+        </div>
+      </div>
+
+      <p class="small uf-muted text-center mt-4 mb-0">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>.
+      </p>
+    </div>
+  </div>
 {% endblock %}
