@@ -1,23 +1,12 @@
-"""
-locations/models.py  —  reference data, written and owned by nobody's module
+"""Dhaka neighbourhoods — reference data several apps share.
 
-One tiny model: Area. A Dhaka neighbourhood.
+Why its own app: a Listing sits in an area and a mess belongs to one. If
+Area lived inside `listings`, then `mess` would have to import `listings`
+just to name a neighbourhood. Shared reference data gets its own app.
 
-WHY THIS IS ITS OWN APP
-    Area is shared. A Listing sits in an area, a search filters by area, and
-    later a mess belongs to one. If it lived inside `listings`, then `mess`
-    would have to import from `listings` to mention a neighbourhood, which
-    couples two modules that should not know about each other.
-
-    Reference data that several apps need belongs in an app of its own. That
-    is the whole rule, and it is a good answer if Sir asks why there are six
-    apps instead of five.
-
-WHY NOT JUST A CharField ON Listing
-    Exactly the reason department stopped being free text. Four people
-    typing a neighbourhood produce "Farmgate", "farmgate", "Farm Gate" and
-    "Fatmgate", and the area filter then misses listings that are really
-    there. A foreign key makes that impossible.
+Why not a plain text field: four people typing a name produce "Farmgate",
+"farmgate", "Farm Gate" and "Fatmgate", and the area filter then misses
+listings that are really there.
 
 Rows are loaded by `python manage.py seed_areas`.
 """
@@ -26,21 +15,14 @@ from django.db import models
 
 
 class Area(models.Model):
-    """
-    A neighbourhood students actually say out loud: Farmgate, Azimpur,
-    Mirpur-10.
+    """A neighbourhood students actually say out loud: Farmgate, Azimpur.
 
-    The coordinates are the rough centre of the area. Two uses:
-
-      1. A listing whose owner has not dropped a map pin yet can fall back
-         to its area's centre, so it still appears in a radius search
-         instead of vanishing.
-      2. "How far is Mirpur-10 from UAP?" is answerable without any
-         listings existing at all — handy while you are still building.
+    The coordinates are the rough centre. They let a listing with no map
+    pin still appear in a radius search, and they answer "how far is
+    Mirpur-10 from UAP" before any listing exists.
     """
 
     class Zone(models.TextChoices):
-        """Rough side of the city. Only used for grouping the dropdown."""
         CENTRAL = "C", "Central Dhaka"
         NORTH = "N", "North Dhaka"
         EAST = "E", "East Dhaka"
@@ -54,27 +36,27 @@ class Area(models.Model):
 
     is_student_hub = models.BooleanField(
         default=False,
-        help_text="Areas students actually cluster in — shown first in the "
-                  "dropdown. Not a judgement about the area, just a default.",
+        help_text="Areas students cluster in — shown first in the dropdown.",
     )
 
     class Meta:
-        # student hubs first, then alphabetical — so the dropdown opens on
-        # the areas most people want instead of on whatever starts with 'A'
+        # student hubs first, then alphabetical, so the dropdown opens on
+        # the areas most people want
         ordering = ["-is_student_hub", "name"]
 
     def __str__(self):
         return self.name
 
     def distance_to(self, university):
-        """
-        Kilometres from this area's centre to a campus.
+        """Kilometres from this area's centre to a campus.
 
-        Reuses the same haversine as the listing search — one implementation
-        of the maths, used everywhere. Never write the formula twice.
+        Reuses the same formula as the listing search. Never write the
+        maths twice — change one copy and you forget the other.
         """
         from listings.services import haversine_km
-        return round(haversine_km(
+
+        km = haversine_km(
             self.latitude, self.longitude,
             university.latitude, university.longitude,
-        ), 2)
+        )
+        return round(km, 2)
