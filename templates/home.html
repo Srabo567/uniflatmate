@@ -1,11 +1,176 @@
 {% extends "base.html" %}
+{% block title %}UniFlatMate — find a compatible roommate{% endblock %}
+
 {% block content %}
-  <h1>UniFlatMate</h1>
-  <p>Find a compatible roommate — not just a room.</p>
-  {% if user.is_authenticated %}
-    <a href="{% url 'matching:match_list' %}">See your matches</a>
-  {% else %}
-    <a href="{% url 'accounts:signup' %}">Create an account</a>
-    <a href="{% url 'login' %}">Log in</a>
-  {% endif %}
+
+  <!-- ===== hero ===== -->
+  <section class="uf-hero">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="uf-label" style="color:rgba(255,255,255,.75)">Student networking</span>
+        <h1 class="display-6 mt-1 mb-2">Find a compatible roommate — not just a room.</h1>
+        <p class="mb-4" style="max-width:46ch">
+          Thousands of students move to Dhaka every year and end up sharing a
+          room with a stranger. UniFlatMate scores how well two students
+          would actually live together, before either of them commits.
+        </p>
+
+        {% if user.is_authenticated %}
+          <a class="btn btn-lg btn-uf" href="{% url 'matching:match_list' %}">See your matches</a>
+          <a class="btn btn-lg btn-uf-ghost" href="{% url 'accounts:requests_inbox' %}">My requests</a>
+        {% else %}
+          <a class="btn btn-lg btn-uf" href="{% url 'accounts:signup' %}">Create a student account</a>
+          <a class="btn btn-lg btn-uf-ghost" href="{% url 'login' %}">Log in</a>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-5">
+        <div class="uf-hero-stats justify-content-lg-end">
+          <div class="uf-hero-stat">
+            <strong>4</strong>
+            <span>Scored factors</span>
+          </div>
+          <div class="uf-hero-stat">
+            <strong>0 ৳</strong>
+            <span>Money handled</span>
+          </div>
+          <div class="uf-hero-stat">
+            <strong>Any uni</strong>
+            <span>Verified by email</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== how it works ===== -->
+  <section class="mt-5">
+    <span class="uf-label">How it works</span>
+    <h2 class="h4 mt-1 mb-3">Four steps, no money involved</h2>
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-3">
+        <div class="uf-card uf-card--flat h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="uf-step">1</span>
+            <h3 class="h6 mb-0">Verify</h3>
+          </div>
+          <p class="small uf-muted mb-0">
+            Sign up with your university email. The domain has to match the
+            campus you picked, so everyone here is a real student.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="uf-card uf-card--flat h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="uf-step">2</span>
+            <h3 class="h6 mb-0">Answer four questions</h3>
+          </div>
+          <p class="small uf-muted mb-0">
+            Smoking, sleep schedule, study environment, monthly budget.
+            That is the whole profile.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="uf-card uf-card--flat h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="uf-step">3</span>
+            <h3 class="h6 mb-0">Get scored</h3>
+          </div>
+          <p class="small uf-muted mb-0">
+            Every other student on your campus is scored against you, with
+            the reasoning shown next to the number.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="uf-card uf-card--flat h-100 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="uf-step">4</span>
+            <h3 class="h6 mb-0">Send a request</h3>
+          </div>
+          <p class="small uf-muted mb-0">
+            The other student accepts or declines. Rent is arranged
+            face to face — this site never touches it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== modules ===== -->
+  <section class="mt-5">
+    <span class="uf-label">Modules</span>
+    <h2 class="h4 mt-1 mb-3">What the platform does</h2>
+    <div class="row g-3">
+
+      <div class="col-md-4">
+        <div class="uf-card uf-card--accent h-100 p-3">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="uf-icon mb-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3.5 2"></path>
+              </svg>
+            </div>
+            <span class="uf-tag uf-tag--live">Working</span>
+          </div>
+          <h3 class="h6">Compatibility score</h3>
+          <p class="small uf-muted mb-0">
+            Habits, schedule and budget weighted into one number out of 100 —
+            with a <strong>not recommended</strong> warning below 50, so a bad
+            match is never quietly hidden.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="uf-card uf-card--accent h-100 p-3">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="uf-icon mb-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z"></path>
+                <circle cx="12" cy="10" r="2.5"></circle>
+              </svg>
+            </div>
+            <span class="uf-tag uf-tag--live">Working</span>
+          </div>
+          <h3 class="h6">Seats near your campus</h3>
+          <p class="small uf-muted mb-0">
+            Pick a university, set a radius in kilometres, see every seat
+            inside it on a map. Rent is shown as information only.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="uf-card uf-card--accent h-100 p-3">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="uf-icon mb-3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 10h16"></path>
+                <path d="M6 10a6 6 0 0 0 12 0"></path>
+                <path d="M4 20h16"></path>
+                <path d="M9 4v2M12 3v3M15 4v2"></path>
+              </svg>
+            </div>
+            <span class="uf-tag uf-tag--live">Working</span>
+          </div>
+          <h3 class="h6">Shared meal records</h3>
+          <p class="small uf-muted mb-0">
+            Daily meals and shared groceries logged per mess, with the
+            per-person meal rate calculated automatically at month end.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
 {% endblock %}
