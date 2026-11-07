@@ -1,55 +1,34 @@
-"""
-mess/models.py  —  Mess, DailyMeal, MessExpense
+"""The shared-meal khata: who ate how much, who paid for the bazaar.
 
-The shared-meal module: a digital version of the paper "meal khata" that
-every mess in Bangladesh keeps in a notebook.
+No money moves through UniFlatMate. This records the numbers and reports
+the difference; the students settle up between themselves, offline.
 
-NO MONEY MOVES THROUGH UNIFLATMATE. This records who ate how many meals and
-who paid for the bazaar, then reports the difference. Settling up happens
-between the students themselves, offline, exactly as it does now.
-
-#########################################################################
-READ THIS — IT IS THE MOST IMPORTANT DESIGN POINT IN THE PROJECT
-#########################################################################
-
-The prototype in the original idea document computed the meal rate like
-this:
-
-    SELECT SUM(amount) FROM mess_expenses      <-- no WHERE clause
-    SELECT SUM(meal_count) FROM daily_meals    <-- no WHERE clause
-
-With no mess_id on those tables, that sums the expenses and meals of EVERY
-mess on the whole platform and produces one global meal rate for all of
-Bangladesh. It looks perfectly fine while there is only one mess in the
-database — which is exactly why this kind of bug survives until the demo.
-
-That is why `mess` is a REQUIRED foreign key on both DailyMeal and
-MessExpense, and why every query in mess/services.py is scoped by it.
-#########################################################################
+IMPORTANT — why `mess` is a required foreign key on DailyMeal and
+MessExpense: without it, "SUM(amount)" and "SUM(meal_count)" add up every
+mess on the whole platform and produce one meal rate for all of them. With
+only one mess in the database that looks perfectly correct, which is why
+the bug would survive until the demo. Every query in services.py is scoped
+by mess for the same reason.
 """
 
 from django.db import models
 
 
 class Mess(models.Model):
-    """
-    A group of students sharing meals at one address.
+    """A group of students sharing meals at one address.
 
-    One of the members is the manager. That is not a separate account type
-    — just a flag on a normal student, like the admin of a Facebook group.
+    One member is the manager. That is not a separate account type, just a
+    link to a normal student — like the admin of a Facebook group.
     """
 
     listing = models.OneToOneField(
         "listings.Listing", on_delete=models.CASCADE, related_name="mess",
-        help_text="OneToOne, not ForeignKey — one listing becomes exactly "
-                  "one mess.",
+        help_text="OneToOne: one listing becomes exactly one mess.",
     )
     manager = models.ForeignKey(
         "accounts.Student", on_delete=models.PROTECT,
         related_name="managed_messes",
-        help_text="Adds and removes members, and corrects wrong entries. "
-                  "PROTECT: you cannot delete the student who runs a mess "
-                  "and leave it with nobody in charge.",
+        help_text="PROTECT: a mess must never be left with nobody in charge.",
     )
     mess_name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -63,15 +42,17 @@ class Mess(models.Model):
         return self.members.count()
 
     def is_manager(self, student):
-        return student is not None and student.pk == self.manager_id
+        if student is None:
+            return False
+        return student.pk == self.manager_id
 
     def has_member(self, student):
-        """Membership check used by every view in this app."""
-        return (student is not None
-                and getattr(student, "mess_id", None) == self.pk)
+        if student is None:
+            return False
+        return getattr(student, "mess_id", None) == self.pk
 
     def can_view(self, student):
-        """A mess khata is private to the people in that mess."""
+        """A khata is private to the people in that mess."""
         return self.has_member(student) or self.is_manager(student)
 
     def __str__(self):
@@ -95,14 +76,14 @@ class DailyMeal(models.Model):
     added_by = models.ForeignKey(
         "accounts.Student", on_delete=models.PROTECT,
         related_name="meal_entries_added", null=True, blank=True,
-        help_text="Who typed it in. May be the manager correcting someone "
-                  "else's row — corrections stay visible to everyone, which "
-                  "is the whole reason a digital khata beats a notebook.",
+        help_text="Who typed it in. May be the manager fixing someone "
+                  "else's row.",
     )
 
     class Meta:
         ordering = ["-meal_date"]
         constraints = [
+            # One row per student per day in one mess.
             models.UniqueConstraint(
                 fields=["student", "mess", "meal_date"],
                 name="one_meal_row_per_day",
@@ -123,9 +104,8 @@ class MessExpense(models.Model):
 
     payer = models.ForeignKey(
         "accounts.Student", on_delete=models.PROTECT, related_name="expenses",
-        help_text="PROTECT, not CASCADE — deleting a student must not "
-                  "silently erase money they spent. Django refuses the "
-                  "delete instead, which is correct for a financial record.",
+        help_text="PROTECT: deleting a student must not erase money they "
+                  "spent, because that would change everyone else's balance.",
     )
     mess = models.ForeignKey(
         Mess, on_delete=models.CASCADE, related_name="expenses",
