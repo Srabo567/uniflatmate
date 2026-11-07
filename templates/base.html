@@ -26,10 +26,7 @@
       <div class="ms-auto d-flex align-items-center gap-1">
         {% if user.is_authenticated %}
 
-          {# On a laptop this is a row of links in the bar. On a phone the
-             same markup becomes a drop-down panel, opened by the button
-             below — so there is one list of links, not two to keep in
-             sync. See .uf-menu in uniflatmate.css. #}
+          {# One list of links: a row on a laptop, a drop-down panel on a phone. #}
           <div class="uf-menu" id="uf-menu">
             {% if is_owner %}
               <a class="uf-navlink" href="{% url 'listings:dashboard' %}">My listings</a>
