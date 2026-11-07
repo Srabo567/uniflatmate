@@ -13,10 +13,9 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),   # login/logout for free
     path("matching/", include("matching.urls")),
 
-    # বাকি module গুলো তৈরি হলে যার যার লাইনটা খুলে দেবে।
-    # path("listings/", include("listings.urls")),      ← সামিয়া
-    # path("mess/", include("mess.urls")),              ← তাজকিয়া
-    # path("reviews/", include("reviews.urls")),        ← শুভ্র
+    path("listings/", include("listings.urls")),
+    path("mess/", include("mess.urls")),
+    path("reviews/", include("reviews.urls")),
 ]
 
 # Uploaded photos. Django's dev server does NOT serve MEDIA_ROOT on its
