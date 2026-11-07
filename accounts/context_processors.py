@@ -1,18 +1,13 @@
-"""
-accounts/context_processors.py
+"""Variables every template gets, without each view passing them.
 
-A context processor adds variables to EVERY template without each view
-having to pass them. Registered in settings.py under TEMPLATES ->
-context_processors.
-
-Used here for two things the navbar needs on every page.
+Registered in settings.py under TEMPLATES -> context_processors.
 """
 
 from django.urls import NoReverseMatch, reverse
 
 
-def _reversible(name):
-    """True if a URL name can be resolved right now."""
+def url_exists(name):
+    """True if this URL name can be resolved right now."""
     try:
         reverse(name)
         return True
@@ -20,54 +15,46 @@ def _reversible(name):
         return False
 
 
-def navigation(request):
+def is_owner_account(user):
+    """True if this user has an Owner row.
+
+    Multi-table inheritance gives a User a .owner accessor that raises
+    when the child row is not there. One cheap primary-key lookup.
     """
-    What to show in the navbar.
+    try:
+        user.owner
+        return True
+    except Exception:
+        return False
 
-    `listings_enabled` exists because the listings URLs are commented out
-    in uniflatmate/urls.py until that app's models are written. Without
-    this flag, a {% url 'listings:search' %} in base.html would raise
-    NoReverseMatch and take down every page on the site.
 
-    So the owner links appear by themselves the moment someone uncomments
-    that line. Nothing else to remember.
+def is_student_account(user):
+    try:
+        user.student
+        return True
+    except Exception:
+        return False
+
+
+def navigation(request):
+    """What the navbar should show.
+
+    listings_enabled exists because the listings URLs stay commented out
+    in uniflatmate/urls.py until that app is written. Without the flag, a
+    {% url 'listings:search' %} in base.html would break every page.
     """
     user = getattr(request, "user", None)
 
-    is_owner = is_student = False
+    is_owner = False
+    is_student = False
+
     if user is not None and user.is_authenticated:
-        # Multi-table inheritance gives a User a .owner / .student accessor
-        # that raises DoesNotExist when the child row is not there. One
-        # cheap primary-key lookup each.
-        try:
-            user.owner
-            is_owner = True
-        except Exception:
-            pass
+        is_owner = is_owner_account(user)
         if not is_owner:
-            try:
-                user.student
-                is_student = True
-            except Exception:
-                pass
+            is_student = is_student_account(user)
 
     return {
-        # প্রতিটা module তৈরি হলে তার link আপনাআপনি navbar এ চলে আসবে।
-        # এই flag না থাকলে base.html এ এমন url থাকত যা এখনো নেই, আর
-        # সাইটের সব page NoReverseMatch দিয়ে ভেঙে পড়ত।
-        "listings_enabled": _reversible("listings:search"),
-        "mess_enabled": _reversible("mess:my_mess"),
-        "reviews_enabled": _reversible("reviews:owner_reviews") or _has("reviews"),
+        "listings_enabled": url_exists("listings:search"),
         "is_owner": is_owner,
         "is_student": is_student,
     }
-
-
-def _has(namespace):
-    """reviews:owner_reviews এর argument লাগে, তাই আলাদা করে দেখা।"""
-    from django.urls import NoReverseMatch, reverse
-    try:
-        reverse(f"{namespace}:owner_reviews", args=[1])
-        return True
-    except NoReverseMatch:
-        return False
