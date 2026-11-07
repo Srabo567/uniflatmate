@@ -31,10 +31,15 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 
-python manage.py seed_universities    # 22 Dhaka campuses
-python manage.py seed_areas           # 46 Dhaka areas
-python manage.py seed_demo_mess       # a demo mess with meal records
-python manage.py seed_demo            # 14 demo students, 2 owners
+# Seed data. This order matters: listings need owners and areas,
+# and the mess needs students and a listing to attach to.
+python manage.py seed_universities     # 22 Dhaka campuses
+python manage.py seed_areas            # 46 Dhaka neighbourhoods
+python manage.py seed_amenities        # the amenity checklist
+python manage.py seed_demo             # 14 students, 2 owners
+python manage.py seed_demo_listings    # 6 rooms
+python manage.py seed_demo_mess        # a mess with two weeks of meals
+
 
 python manage.py test
 python manage.py runserver
