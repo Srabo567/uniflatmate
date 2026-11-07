@@ -1,20 +1,15 @@
-"""
-matching/services.py  —  WORKED EXAMPLE (the unique feature)
+"""The compatibility score.
 
-UniFlatMate's compatibility score. Deliberately plain Python: no framework,
-no machine learning, no libraries. That is a strength, not a shortcut — you
-can explain every line in the viva, and it needs no training data.
+Plain Python — no library, no machine learning, no training data. Every
+line can be explained.
 
-Business logic lives in services.py, NOT in views.py. A view handles the web
-request and nothing else. Keeping the algorithm here means tests.py can run
-it without a browser.
+The maths lives here and not in views.py, so tests can run it without a
+browser.
 """
 
 from decimal import Decimal
 
-# What each factor is worth. They must total 100.
-# Tuning these numbers IS the "iterative tuning" claim in the CEP table, so
-# keep a note of why you chose them.
+# What each factor is worth. These add up to 100.
 WEIGHTS = {
     "smoking": 30,      # heaviest: the most common cause of conflict
     "sleep": 25,
@@ -25,23 +20,19 @@ WEIGHTS = {
 # Two students count as budget-compatible within this many taka.
 BUDGET_TOLERANCE = Decimal("1500.00")
 
-# Below this, the UI shows a warning instead of a match.
+# Below this, the page shows a warning instead of a match.
 WARNING_THRESHOLD = 50
 
 
 def calculate_compatibility(a, b):
-    """
-    Score how well two students would share a room, 0 to 100.
+    """Score how well two students would share a room, 0 to 100.
 
-    Takes two Student objects, returns an int.
-
-    Each factor is scored independently then weighted, so adding a new
-    factor later means one block here and one entry in WEIGHTS — nothing
-    else in the project changes.
+    Each factor is scored on its own and then weighted, so adding a new
+    one later means one block here and one line in WEIGHTS.
     """
     score = 0
 
-    # 1. Smoking — agreement matters more than the habit itself
+    # 1. Smoking — agreeing matters more than the habit itself
     if a.smokes == b.smokes:
         score += WEIGHTS["smoking"]
 
@@ -53,8 +44,8 @@ def calculate_compatibility(a, b):
     if a.study_at_home == b.study_at_home:
         score += WEIGHTS["study"]
 
-    # 4. Budget — partial credit, because money is a spectrum.
-    #    abs() so the order of the two students never changes the result.
+    # 4. Budget — partial marks, because money is a range not a yes/no.
+    #    abs() so swapping the two students cannot change the answer.
     gap = abs(a.budget - b.budget)
     if gap <= BUDGET_TOLERANCE:
         closeness = 1 - (gap / BUDGET_TOLERANCE)
@@ -64,37 +55,33 @@ def calculate_compatibility(a, b):
 
 
 def is_recommended(score):
-    """True if this pair should be shown as a match rather than a warning."""
+    """True if this pair should be shown as a match, not a warning."""
     return score >= WARNING_THRESHOLD
 
 
 def describe_breakdown(a, b):
-    """
-    Explain WHY the score is what it is, for the result page.
+    """Why the score is what it is — a list the template can loop over.
 
-    Returns (label, matched) pairs a template can loop over. People trust a
-    score far more when they can see the reasoning, and it demos much better
-    than a bare number.
+    People trust a score much more when they can see the reasoning.
     """
+    budget_gap = abs(a.budget - b.budget)
+
     return [
         ("Smoking habit", a.smokes == b.smokes),
         ("Sleep schedule", a.sleeps_early == b.sleeps_early),
         ("Study environment", a.study_at_home == b.study_at_home),
-        ("Budget range", abs(a.budget - b.budget) <= BUDGET_TOLERANCE),
+        ("Budget range", budget_gap <= BUDGET_TOLERANCE),
     ]
 
 
 def find_matches(student, candidates, limit=10):
-    """
-    Score a student against many candidates, best first.
-
-    `candidates` is a queryset or list of Students.
-    Returns a list of dicts, highest score first.
-    """
+    """Score one student against many others, best first."""
     results = []
+
     for other in candidates:
         if other.pk == student.pk:
-            continue                      # never match someone with themselves
+            continue                  # never match someone with themselves
+
         score = calculate_compatibility(student, other)
         results.append({
             "student": other,
@@ -103,5 +90,5 @@ def find_matches(student, candidates, limit=10):
             "breakdown": describe_breakdown(student, other),
         })
 
-    results.sort(key=lambda r: r["score"], reverse=True)
+    results.sort(key=lambda row: row["score"], reverse=True)
     return results[:limit]
